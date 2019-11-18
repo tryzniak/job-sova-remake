@@ -66,6 +66,13 @@ app.put(
   )
 );
 
+app.get(
+  "/vacancies/:id",
+  require("./controllers/show-vacancy")(
+    require("./use-cases/show-vacancy")(VacancyService)
+  )
+);
+
 app.delete(
   "/vacancies/:id",
   require("./controllers/delete-vacancy")(
@@ -123,12 +130,40 @@ app.get(
   )
 );
 
-const DisabilityService = require("./disability-service")(makeDb);
 app.get(
-  "/disabilities",
+  "/skills/:id",
+  toCallback(
+    require("./controllers/show-skill")(
+      require("./use-cases/show-skill")(SkillService)
+    )
+  )
+);
+
+app.delete(
+  "/skills/:id",
+  toCallback(
+    require("./controllers/delete-skill")(
+      require("./use-cases/delete-skill")(SkillService)
+    )
+  )
+);
+
+const DisabilityTypeService = require("./disability-type-service")(makeDb);
+app.get(
+  "/disabilityTypes",
   toCallback(
     require("./controllers/all-disabilities")(
-      require("./use-cases/all-disabilities")(DisabilityService)
+      require("./use-cases/all-disabilities")(DisabilityTypeService)
+    )
+  )
+);
+
+const DisabilityGroupService = require("./disability-group-service")(makeDb);
+app.get(
+  "/disabilityTypes",
+  toCallback(
+    require("./controllers/all-disabilities")(
+      require("./use-cases/all-disabilities")(DisabilityGroupService)
     )
   )
 );
@@ -173,6 +208,13 @@ app.get(
   )
 );
 
+app.get(
+  "/resumes/:id",
+  require("./controllers/show-resume")(
+    require("./use-cases/show-resume")(ResumeService)
+  )
+);
+
 app.post(
   "/vacancies",
   toCallback(
@@ -202,7 +244,6 @@ const signinUseCase = require("./use-cases/signin")(
   UserService,
   verifyPassword
 );
-
 
 const signinController = require("./controllers/signin")(signinUseCase);
 app.post("/signin", toCallback(signinController));
@@ -237,6 +278,69 @@ app.post(
   toCallback(
     require("./controllers/signup-jobseeker")(
       require("./use-cases/signup-jobseeker")(JobseekerService)
+    )
+  )
+);
+
+const CallbackService = require("./callback-service")(makeDb);
+app.post(
+  "/callbacks/jobseekers/:jobSeekerId/partners/:partnerId",
+  toCallback(
+    require("./controllers/jobseeker-requests-callback")(
+      require("./use-cases/jobseeker-requests-callback")(CallbackService)
+    )
+  )
+);
+
+app.put(
+  "/callbacks/:id/moderate",
+  toCallback(
+    require("./controllers/admin-moderates-callback")(
+      require("./use-cases/admin-moderates-callback")(
+        CallbackService,
+        async id => console.log(id)
+      )
+    )
+  )
+);
+
+const QuestionService = require("./question-service")(makeDb);
+app.post(
+  "/questions/jobseekers/:jobSeekerId/partners/:partnerId",
+  toCallback(
+    require("./controllers/jobseeker-asks-question")(
+      require("./use-cases/jobseeker-asks-question")(
+        QuestionService,
+        async id => id
+      )
+    )
+  )
+);
+
+const PartnerService = require("./partner-service")(makeDb);
+app.post(
+  "/partners",
+  toCallback(
+    require("./controllers/admin-creates-partner")(
+      require("./use-cases/admin-creates-partner")(PartnerService)
+    )
+  )
+);
+
+app.put(
+  "/questions/:id/moderate",
+  toCallback(
+    require("./controllers/admin-moderates-question")(
+      require("./use-cases/admin-moderates-question")(QuestionService)
+    )
+  )
+);
+
+app.get(
+  "/jobseekers/:id",
+  toCallback(
+    require("./controllers/show-jobseeker")(
+      require("./use-cases/show-jobseeker")(JobseekerService)
     )
   )
 );
@@ -311,7 +415,7 @@ const processImage = require("./make-image-pipeline")(
 );
 const multer = require("multer");
 app.use(
-  "/:userId/upload-profile-pic",
+  "/users/:userId/upload-profile-pic",
   multer({ mimetype: "image/*", limits: { fileSize: 1000000 } }).single(
     "image"
   ),

@@ -18,10 +18,8 @@ const makeService = function(makeDB) {
                 residence: value.residence,
                 createdAt: value.createdAt,
                 updatedAt: value.updatedAt,
-                disability: {
-                  id: value.disabilityId,
-                  title: value.disabilityTitle
-                },
+                disabilityTypeId: value.disabilityTypeId,
+                disabilityGroupId: value.disabilityGroupId,
                 skills: R.uniqBy(R.prop("id"), [
                   ...(accObj.skills || []),
                   { id: value.skillId, title: value.skillTitle }
@@ -151,7 +149,6 @@ const makeService = function(makeDB) {
     return makeDB()
       .select([
         "r.*",
-        "disabilities.title as disabilityTitle",
         "professions.title as professionTitle",
         "professions.id as professionId",
         "skills.title as skillTitle",
@@ -170,8 +167,16 @@ const makeService = function(makeDB) {
         makeDB()
           .select()
           .from("resumes")
+          .join("jobSeekers", "jobSeekers.userId", "resumes.jobSeekerId")
           .as("r")
           .where(builder => {
+            if (predicate.ageMax && predicate.ageMin) {
+              builder.whereRaw(
+                "TIMESTAMPDIFF(YEAR, dateOfBirth, NOW()) >= ? AND TIMESTAMPDIFF(YEAR, dateOfBirth, NOW()) <= ?",
+                [predicate.ageMin, predicate.ageMax]
+              );
+            }
+
             builder.where(
               R.omit(
                 [
@@ -179,7 +184,9 @@ const makeService = function(makeDB) {
                   "skills",
                   "educations",
                   "professions",
-                  "pagination"
+                  "pagination",
+                  "ageMin",
+                  "ageMax"
                 ],
                 predicate
               )
@@ -188,7 +195,6 @@ const makeService = function(makeDB) {
           .limit(predicate.pagination.perPage)
           .offset(predicate.pagination.pageNumber)
       )
-      .join("disabilities", "disabilities.id", "r.disabilityId")
       .leftJoin("resumeEducations", "resumeEducations.resumeId", "r.id")
       .leftJoin("educations", "educations.id", "resumeEducations.educationId")
       .join("resumeProfessions", "resumeProfessions.resumeId", "r.id")
@@ -301,16 +307,42 @@ const makeService = function(makeDB) {
 
   async function findByID(id) {
     const record = await makeDB()
-      .select()
+      .select([
+        "resumes.*",
+        "professions.title as professionTitle",
+        "professions.id as professionId",
+        "skills.title as skillTitle",
+        "skills.id as skillId",
+        "educations.title as educationTitle",
+        "educations.id as educationId",
+        "resumeEducations.institutionTitle as institutionTitle",
+        "resumeEducations.endingOn as educationEndingOn",
+        "resumeEducations.specialty as educationSpecialty",
+        "resumeExperiences.positionTitle as experiencePosition",
+        "resumeExperiences.startingOn as experienceStartingOn",
+        "resumeExperiences.endingOn as experienceEndingOn",
+        "resumeExperiences.employerTitle as employerTitle"
+      ])
       .from("resumes")
-      .where("id", id)
-      .first();
+      .leftJoin("resumeEducations", "resumeEducations.resumeId", "resumes.id")
+      .leftJoin("educations", "educations.id", "resumeEducations.educationId")
+      .join("resumeProfessions", "resumeProfessions.resumeId", "resumes.id")
+      .join("professions", "professions.id", "resumeProfessions.professionId")
+      .join("resumeSkills", "resumeSkills.resumeId", "resumes.id")
+      .join("skills", "skills.id", "resumeSkills.skillId")
+      .leftJoin("resumeExperiences", "resumeExperiences.resumeId", "resumes.id")
+      .then(
+        R.compose(
+          R.nth(0),
+          unflatten
+        )
+      );
+
     if (!record) {
-      const e = new Error("Record not found");
-      e.code = "ER_NOT_FOUND";
-      throw e;
+      throw new Error("Record not found");
     }
-    return { ...record };
+
+    return record;
   }
 
   return {

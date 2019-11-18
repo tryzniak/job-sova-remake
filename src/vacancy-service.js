@@ -143,8 +143,16 @@ const makeService = function(makeDB) {
           .offset(predicate.pagination.pageNumber)
       )
       .join("markers", "markers.id", "v.markerId")
-      .leftJoin("vacancySkills", "vacancySkills.vacancyId", "v.id")
-      .leftJoin("skills", "skills.id", "vacancySkills.skillId")
+      .leftJoin(
+        makeDB()
+          .select()
+          .from("vacancySkills")
+          .where("moderationStatus", "OK")
+          .as("vacancySkillsFiltered"),
+        "vacancySkillsFiltered.vacancyId",
+        "v.id"
+      )
+      .leftJoin("skills", "skills.id", "vacancySkillsFiltered.skillId")
       .where(builder => {
         if (!R.isEmpty(predicate.skills || [])) {
           builder.whereIn("skills.title", predicate.skills);
@@ -220,17 +228,31 @@ const makeService = function(makeDB) {
   }
 
   async function findByID(id) {
-    const vacancy = await makeDB()
-      .select()
+    const record = await makeDB()
+      .select([
+        "vacancies.*",
+        "markers.lat as lat",
+        "markers.lng as lng",
+        "markers.address as address",
+        "skills.title as skillTitle",
+        "skills.id as skillId"
+      ])
       .from("vacancies")
-      .where("id", id)
-      .first();
-    if (!vacancy) {
-      const e = new Error("Record not found");
-      e.code = "ER_NOT_FOUND";
-      throw e;
+      .join("markers", "markers.id", "vacancies.markerId")
+      .leftJoin("vacancySkills", "vacancySkills.vacancyId", "vacancies.id")
+      .leftJoin("skills", "skills.id", "vacancySkills.skillId")
+      .where("vacancies.id", id)
+      .then(
+        R.compose(
+          R.nth(0),
+          unflatten
+        )
+      );
+    if (!record) {
+      throw new Error("Record not found");
     }
-    return { ...vacancy };
+
+    return record;
   }
 
   return {

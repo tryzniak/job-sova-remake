@@ -59,7 +59,29 @@ const makeService = function(makeDB) {
       .join("users", "users.id", "jobSeekers.userId")
       .where({ id })
       .first();
-    return R.omit(["passwordHash"], record);
+
+    if (!record) {
+      throw new Error("Record not found");
+    }
+
+    return R.filter(
+      R.identity,
+      R.over(
+        R.lensProp("confirmedEmail"),
+        Boolean,
+        R.omit(
+          [
+            "passwordHash",
+            "newEmail",
+            "passwordResetToken",
+            "passwordResetRequestedAt",
+            "emailChangeToken",
+            "emailChangeRequestedAt"
+          ],
+          record
+        )
+      )
+    );
   }
 
   return {

@@ -13,9 +13,9 @@ async function validate(data) {
   try {
     const result = await schema.validateAsync(data, { stripUnknown: true });
     if (R.isEmpty(result)) {
-      throw new Error("Invalid fields for update")
+      throw new Error("Invalid fields for update");
     }
-    return result
+    return result;
   } catch (e) {
     e.code = "ER_BAD_ARGUMENTS";
     throw e;
@@ -23,38 +23,25 @@ async function validate(data) {
 }
 
 const schema = yup.object().shape({
-  educationId: yup
-    .number()
-    .integer(),
-  title: yup
-    .string(),
-  about: yup
-    .string()
-    .max(600),
-  skills: yup
-    .array()
-    .of(yup.string()),
-  isActive: yup
-    .bool()
-    .default(true),
-  isRemoteOk: yup
-    .bool()
-    .default(true),
-  isAccessible: yup
-    .bool()
-    .default(true),
+  educationId: yup.number().integer(),
+  title: yup.string(),
+  about: yup.string().max(600),
+  skills: yup.array().of(yup.string()),
+  isActive: yup.bool().default(true),
+  isRemoteOk: yup.bool().default(true),
+  isAccessible: yup.bool().default(true),
   location: yup
     .object()
     .shape({
       lat: yup.number().required(),
       lng: yup.number().required(),
       address: yup.string().required()
-    }).nullable().default(null),
+    })
+    .nullable()
+    .default(null),
   experienceIsRequired: yup.boolean().default(false),
   hasTrainingOrCourse: yup.boolean().default(false),
-  partTime: yup
-    .boolean()
-    .default(false),
+  partTime: yup.boolean().default(false),
   contacts: yup
     .string()
     .min(1)
