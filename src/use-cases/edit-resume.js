@@ -1,11 +1,20 @@
 const R = require("ramda");
-const joi = require("@hapi/joi");
+const ModerationStatus = require("../moderation-status");
+const joi = require("@hapi/joi").extend(require("@hapi/joi-date"));
+const { subYears } = require("date-fns");
 
-module.exports = function(ResumeService) {
-  return async (id, fields) => {
+module.exports = function(ResumeService, sendEmail) {
+  return async (user, id, fields) => {
+    if (user.role !== "jobseeker") {
+      throw new Error("Unauthorized");
+    }
+
     const validFields = await validate(fields);
-    await ResumeService.update(id, validFields);
-    return await ResumeService.findByID(id);
+    await ResumeService.updateForJobSeeker(user.id, id, {
+      ...validFields,
+      moderationStatus: ModerationStatus.NEEDS_REVIEW
+    });
+    sendEmail(`/resumes/${id}`)
   };
 };
 
@@ -46,7 +55,10 @@ const schema = joi
         startingOn: joi.date().required()
       })
     ),
-    skills: joi.array().items(joi.string()),
+    skills: joi
+      .array()
+      .items(joi.string())
+      .max(10),
     disabilityTypeId: joi
       .number()
       .positive()
@@ -55,6 +67,18 @@ const schema = joi
       .number()
       .positive()
       .integer(),
+    citizenshipId: joi
+      .number()
+      .positive()
+      .integer(),
+    communicationMeans: joi.string().allow("phone", "email"),
+    firstName: joi.string(),
+    lastName: joi.string(),
+    patronymicName: joi.string(),
+    dateOfBirth: joi
+      .date()
+      .format(["YYYY-MM-DD"])
+      .max(subYears(new Date(), 18)),
     isActive: joi.bool(),
     isRemoteOnly: joi.bool(),
     hasExperience: joi.bool(),

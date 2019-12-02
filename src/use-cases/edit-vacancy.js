@@ -1,11 +1,18 @@
 const R = require("ramda");
 const yup = require("yup");
+const ModerationStatus = require("../moderation-status");
 
 module.exports = function(VacancyService) {
-  return async (id, fields) => {
+  return async (user, id, fields) => {
+    if (user.role !== "employer") {
+      throw new Error("Unauthorized");
+    }
+
     const validFields = await validate(fields);
-    await VacancyService.update(id, validFields);
-    return await VacancyService.findByID(id);
+    await VacancyService.updateForEmployer(user.id, id, {
+      ...validFields,
+      moderationStatus: ModerationStatus.NEEDS_REVIEW
+    });
   };
 };
 
@@ -26,7 +33,10 @@ const schema = yup.object().shape({
   educationId: yup.number().integer(),
   title: yup.string(),
   about: yup.string().max(600),
-  skills: yup.array().of(yup.string()),
+  skills: yup
+    .array()
+    .of(yup.string())
+    .max(10),
   isActive: yup.bool().default(true),
   isRemoteOk: yup.bool().default(true),
   isAccessible: yup.bool().default(true),

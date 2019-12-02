@@ -1,16 +1,31 @@
 const R = require("ramda");
 const joi = require("@hapi/joi");
-const phone = require("phone");
 const ModerationStatus = require("../moderation-status");
 
-module.exports = function(CallbackService, sendCallbackToPartner) {
-  return async (id, fields) => {
+module.exports = function(CallbackService, sendCallbackToPartner, broadcast) {
+  return async (currentUser, id, fields) => {
+    if (currentUser.role !== "admin") {
+      throw new Error("Unauthorized");
+    }
+
     const validFields = await validate(fields);
     await CallbackService.update(id, validFields);
+
     if (validFields.moderationStatus === ModerationStatus.OK) {
-      await sendCallbackToPartner(id);
+      const callbackDetails = await CallbackService.findByID(id);
+      sendCallbackToPartner(callbackDetails.partnerEmail, {
+        message: callbackDetails.message,
+        phone: callbackDetails.phone
+      });
+      broadcast({
+        resource: "callbacks",
+        privateEvent: { userId: callbackDetails.jobSeekerId },
+        payload: {
+          callbackId: id,
+          moderationStatus: validFields.moderationStatus
+        }
+      });
     }
-    return await CallbackService.findByID(id);
   };
 };
 
@@ -25,6 +40,9 @@ async function validate(data) {
 
 const schema = joi
   .object({
-    moderationStatus: joi.string().allow(...Object.values(ModerationStatus))
+    moderationStatus: joi
+      .string()
+      .allow(...Object.values(ModerationStatus))
+      .required()
   })
   .required();

@@ -2,13 +2,19 @@ const joi = require("@hapi/joi");
 const ModerationStatus = require("../moderation-status");
 
 module.exports = function(QuestionService, sendQuestionToPartner) {
-  return async (id, fields) => {
+  return async (user, id, fields) => {
+    if (user.role !== "admin") {
+      throw new Error("Unauthorized");
+    }
     const validFields = await validate(fields);
     await QuestionService.update(id, validFields);
     if (validFields.moderationStatus === ModerationStatus.OK) {
-      await sendQuestionToPartner(id);
+      const questionDetails = await QuestionService.findByID(id);
+      sendQuestionToPartner(questionDetails.partnerEmail, {
+        message: questionDetails.message,
+        userEmail: questionDetails.email
+      });
     }
-    return await QuestionService.findByID(id);
   };
 };
 

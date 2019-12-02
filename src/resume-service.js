@@ -9,17 +9,25 @@ const makeService = function(makeDB) {
             (accObj, value) => {
               return {
                 id: value.id,
+                firstName: value.firstName,
+                lastName: value.lastName,
+                patronymicName: value.patronymicName,
+                dateOfBirth: value.dateOfBirth,
+                phone: value.phone,
+                email: value.email,
+                communicationMeans: value.communicationMeans,
                 title: value.title,
                 jobSeekerId: value.jobSeekerId,
                 about: value.about,
-                hasExperience: Boolean(value.hasExperience),
                 isRemoteOnly: Boolean(value.isRemoteOnly),
+                moderationStatus: value.moderationStatus,
                 needsAccessibility: Boolean(value.needsAccessibility),
                 residence: value.residence,
                 createdAt: value.createdAt,
                 updatedAt: value.updatedAt,
                 disabilityTypeId: value.disabilityTypeId,
                 disabilityGroupId: value.disabilityGroupId,
+                citizenshipId: value.citizenshipId,
                 skills: R.uniqBy(R.prop("id"), [
                   ...(accObj.skills || []),
                   { id: value.skillId, title: value.skillTitle }
@@ -51,11 +59,7 @@ const makeService = function(makeDB) {
                         }
                       : undefined
                   ])
-                ),
-                professions: R.uniqBy(R.prop("id"), [
-                  ...(accObj.professions || []),
-                  { id: value.professionId, title: value.professionTitle }
-                ])
+                )
               };
             },
             {},
@@ -66,6 +70,69 @@ const makeService = function(makeDB) {
     );
   }
 
+  async function updateForJobSeeker(jobSeekerId, id, data) {
+    const trx = await makeDB().transaction();
+    try {
+      if (data.skills) {
+        await trx.raw(
+          trx("skills")
+            .insert(data.skills.map(title => ({ title })))
+            .toString()
+            .replace("insert", "insert ignore")
+        );
+
+        await trx("resumeSkills")
+          .delete()
+          .where("resumeId", id);
+
+        await trx.raw(
+          "insert into resumeSkills (resumeId, skillId) select ?, id from skills where title in (?)",
+          [id, data.skills]
+        );
+      }
+
+      if (data.experiences) {
+        await trx("resumeExperiences")
+          .delete()
+          .where("resumeId", id);
+
+        await trx("resumeExperiences").insert(
+          data.experiences.map(experience => ({ ...experience, resumeId: id }))
+        );
+      }
+
+      if (data.educations) {
+        await trx("resumeEducations")
+          .delete()
+          .where("resumeId", id);
+
+        await trx("resumeEducations").insert(
+          data.educations.map(education => ({ ...education, resumeId: id }))
+        );
+      }
+
+      const restUpdateData = R.omit(
+        ["educations", "skills", "experiences", "professions"],
+        data
+      );
+
+      if (!R.isEmpty(restUpdateData)) {
+        const affectedRows = await trx()
+          .update({ ...restUpdateData, jobSeekerId })
+          .from("resumes")
+          .where("id", id);
+        if (affectedRows !== 1) {
+          throw new Error("Not Found");
+        }
+      }
+
+      await trx.commit();
+      return id;
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  }
   async function update(id, data) {
     const trx = await makeDB().transaction();
     try {
@@ -107,24 +174,6 @@ const makeService = function(makeDB) {
         );
       }
 
-      if (data.professions) {
-        await trx("resumeProfessions")
-          .delete()
-          .where("resumeId", id);
-
-        await trx.raw(
-          trx("professions")
-            .insert(data.professions.map(profession => ({ title: profession })))
-            .toString()
-            .replace("insert", "INSERT IGNORE")
-        );
-
-        await trx.raw(
-          "insert into resumeProfessions (resumeId, professionId) select ?, id from professions where title in (?)",
-          [id, data.professions]
-        );
-      }
-
       const restUpdateData = R.omit(
         ["educations", "skills", "experiences", "professions"],
         data
@@ -148,13 +197,10 @@ const makeService = function(makeDB) {
   async function all(predicate) {
     return makeDB()
       .select([
-        "r.*",
-        "professions.title as professionTitle",
-        "professions.id as professionId",
+        "resumes.*",
         "skills.title as skillTitle",
         "skills.id as skillId",
-        "educations.title as educationTitle",
-        "educations.id as educationId",
+        "resumeEducations.id as educationId",
         "resumeEducations.institutionTitle as institutionTitle",
         "resumeEducations.endingOn as educationEndingOn",
         "resumeEducations.specialty as educationSpecialty",
@@ -163,68 +209,82 @@ const makeService = function(makeDB) {
         "resumeExperiences.endingOn as experienceEndingOn",
         "resumeExperiences.employerTitle as employerTitle"
       ])
-      .from(
-        makeDB()
-          .select()
-          .from("resumes")
-          .join("jobSeekers", "jobSeekers.userId", "resumes.jobSeekerId")
-          .as("r")
-          .where(builder => {
-            if (predicate.ageMax && predicate.ageMin) {
-              builder.whereRaw(
-                "TIMESTAMPDIFF(YEAR, dateOfBirth, NOW()) >= ? AND TIMESTAMPDIFF(YEAR, dateOfBirth, NOW()) <= ?",
-                [predicate.ageMin, predicate.ageMax]
-              );
-            }
-
-            builder.where(
-              R.omit(
-                [
-                  "experiences",
-                  "skills",
-                  "educations",
-                  "professions",
-                  "pagination",
-                  "ageMin",
-                  "ageMax"
-                ],
-                predicate
-              )
-            );
-          })
-          .limit(predicate.pagination.perPage)
-          .offset(predicate.pagination.pageNumber)
-      )
-      .leftJoin("resumeEducations", "resumeEducations.resumeId", "r.id")
-      .leftJoin("educations", "educations.id", "resumeEducations.educationId")
-      .join("resumeProfessions", "resumeProfessions.resumeId", "r.id")
-      .join("professions", "professions.id", "resumeProfessions.professionId")
-      .join("resumeSkills", "resumeSkills.resumeId", "r.id")
+      .from("resumes")
+      .leftJoin("resumeEducations", "resumeEducations.resumeId", "resumes.id")
+      .join("resumeSkills", "resumeSkills.resumeId", "resumes.id")
       .join("skills", "skills.id", "resumeSkills.skillId")
-      .leftJoin("resumeExperiences", "resumeExperiences.resumeId", "r.id")
+      .leftJoin("resumeExperiences", "resumeExperiences.resumeId", "resumes.id")
       .where(builder => {
         if (!R.isEmpty(predicate.skills || [])) {
-          builder.whereIn("skills.title", predicate.skills);
+          builder.whereIn("skills.id", predicate.skills);
         }
 
         if (!R.isEmpty(predicate.educations || [])) {
           builder.whereIn("educations.id", predicate.educations);
         }
 
-        if (!R.isEmpty(predicate.professions || [])) {
-          builder.whereIn("professions.title", predicate.professions);
+        if (!R.isEmpty(predicate.specialties || [])) {
+          builder.whereIn("resumeEducations.specialty", predicate.specialties);
         }
 
+        if (predicate.paginationState) {
+          builder.where("resumes.id", "<", predicate.paginationState);
+        }
+
+        if (predicate.moderationState) {
+          builder.where("moderationState", predicate.moderationState);
+        }
+
+        if (predicate.jobSeekerId) {
+          builder.where("jobSeekerId", predicate.jobSeekerId);
+        }
         return builder;
       })
+      .orderBy("id", "desc")
+      .limit(50)
       .then(unflatten);
   }
-  async function clear() {
-    return makeDB()
-      .delete()
-      .into("resumes");
-  }
 
+  async function removeForJobSeeker(jobSeekerId, id) {
+    const trx = await makeDB().transaction();
+    try {
+      await trx("resumeExperiences")
+        .delete()
+        .where("resumeId", id);
+
+      await trx("resumeSkills")
+        .delete()
+        .where("resumeId", id);
+
+      await trx("resumeEducations")
+        .delete()
+        .where("resumeId", id);
+
+      await trx("resumeProfessions")
+        .delete()
+        .where("resumeId", id);
+
+      const rowsAffected = await trx("resumes")
+        .delete()
+        .where({ id, jobSeekerId });
+      if (rowsAffected > 1) {
+        const err = new Error("Record not unique");
+        err.code = "DB_NOT_UNIQUE";
+        throw err;
+      }
+
+      if (rowsAffected === 0) {
+        const err = new Error("Record not found");
+        err.code = "DB_NOT_FOUND";
+        throw err;
+      }
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  }
   async function remove(id) {
     const trx = await makeDB().transaction();
     try {
@@ -244,9 +304,20 @@ const makeService = function(makeDB) {
         .delete()
         .where("resumeId", id);
 
-      await trx("resumes")
+      const rowsAffected = await trx("resumes")
         .delete()
         .where("id", id);
+      if (rowsAffected > 1) {
+        const err = new Error("Record not unique");
+        err.code = "DB_NOT_UNIQUE";
+        throw err;
+      }
+
+      if (rowsAffected === 0) {
+        const err = new Error("Record not found");
+        err.code = "DB_NOT_FOUND";
+        throw err;
+      }
 
       await trx.commit();
     } catch (e) {
@@ -256,20 +327,15 @@ const makeService = function(makeDB) {
   }
 
   async function create(data) {
+    // refactoring:
+    // use Promise.all where feasible
     const trx = await makeDB().transaction();
     try {
-      const { educations, professions, skills, experiences, ...resume } = data;
+      const { educations, skills, experiences, ...resume } = data;
       const [resumeId] = await trx("resumes").insert(resume);
       await trx.raw(
         trx("skills")
           .insert(skills.map(skill => ({ title: skill })))
-          .toString()
-          .replace("insert", "INSERT IGNORE")
-      );
-
-      await trx.raw(
-        trx("professions")
-          .insert(professions.map(profession => ({ title: profession })))
           .toString()
           .replace("insert", "INSERT IGNORE")
       );
@@ -284,11 +350,6 @@ const makeService = function(makeDB) {
           experiences.map(item => Object.assign({}, item, { resumeId }))
         );
       }
-
-      await trx.raw(
-        "insert into resumeProfessions (resumeId, professionId) select ?, id from professions where title in (?)",
-        [resumeId, professions]
-      );
 
       await trx.raw(
         trx("resumeEducations")
@@ -309,8 +370,6 @@ const makeService = function(makeDB) {
     const record = await makeDB()
       .select([
         "resumes.*",
-        "professions.title as professionTitle",
-        "professions.id as professionId",
         "skills.title as skillTitle",
         "skills.id as skillId",
         "educations.title as educationTitle",
@@ -326,11 +385,10 @@ const makeService = function(makeDB) {
       .from("resumes")
       .leftJoin("resumeEducations", "resumeEducations.resumeId", "resumes.id")
       .leftJoin("educations", "educations.id", "resumeEducations.educationId")
-      .join("resumeProfessions", "resumeProfessions.resumeId", "resumes.id")
-      .join("professions", "professions.id", "resumeProfessions.professionId")
       .join("resumeSkills", "resumeSkills.resumeId", "resumes.id")
       .join("skills", "skills.id", "resumeSkills.skillId")
       .leftJoin("resumeExperiences", "resumeExperiences.resumeId", "resumes.id")
+      .where("resumes.id", id)
       .then(
         R.compose(
           R.nth(0),
@@ -339,7 +397,9 @@ const makeService = function(makeDB) {
       );
 
     if (!record) {
-      throw new Error("Record not found");
+      const e = new Error("Record not found");
+      e.code = "ER_NOT_FOUND";
+      throw e;
     }
 
     return record;
@@ -347,8 +407,8 @@ const makeService = function(makeDB) {
 
   return {
     create,
-    clear,
     remove,
+    removeForJobSeeker,
     update,
     all,
     findByID

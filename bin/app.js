@@ -1,3 +1,6 @@
-const server = require("../src/server");
+const { httpServer, wsServer } = require("../src/server");
 const port = process.env.APP_PORT || 3000;
-server.listen(port, () => console.log(`The app is listening on ${port}`));
+const http = require("http").createServer(httpServer);
+wsServer.attach(http, { path: "/socket.io", cookies: true });
+
+http.listen(port, () => console.log(`The app is listening on ${port}`));

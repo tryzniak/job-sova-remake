@@ -45,10 +45,13 @@ const makeUserService = function(makeDB) {
   }
 
   async function updateWhere(filter, fields) {
-    return makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("users")
       .where(filter);
+    if (!affectedRows) {
+      throw new Error("Record not found");
+    }
   }
 
   async function remove(id) {
@@ -95,7 +98,7 @@ const makeUserService = function(makeDB) {
 
   async function findByEmail(email) {
     const results = await makeDB().raw(
-      "select u.id, u.username, u.email, u.phone, u.role, e.title, e.about, e.residence, j.firstName, j.lastName, j.patronymicName, j.gender, j.dateOfBirth from users u left join employers e on u.id = e.userId left join jobSeekers j on j.userId = u.id where u.email = ? and u.confirmedEmail = TRUE",
+      "select u.id, u.passwordHash, u.liveUpdatesToken, u.email, u.phone, u.role, e.title, e.about, e.residence, j.firstName, j.lastName, j.patronymicName, j.gender, j.dateOfBirth from users u left join employers e on u.id = e.userId left join jobSeekers j on j.userId = u.id where u.email = ? and u.confirmedEmail = TRUE",
       [email]
     );
     if (R.isEmpty(results[0])) {
@@ -120,17 +123,29 @@ const makeUserService = function(makeDB) {
   }
 
   async function findByID(id) {
-    const user = await makeDB()
-      .select()
-      .from("users")
-      .where({ id })
-      .first();
-    if (!user) {
+    const results = await makeDB().raw(
+      "select u.id, u.liveUpdatesToken, u.username, u.email, u.phone, u.role, e.title, e.about, e.residence, j.firstName, j.lastName, j.patronymicName, j.gender, j.dateOfBirth from users u left join employers e on u.id = e.userId left join jobSeekers j on j.userId = u.id where u.id = ? and u.confirmedEmail = TRUE",
+      [id]
+    );
+    if (R.isEmpty(results[0])) {
       const e = new Error("Record not found");
       e.code = "ER_NOT_FOUND";
       throw e;
     }
-    return { ...user };
+    return R.filter(
+      R.compose(
+        R.not,
+        R.isNil
+      ),
+      results[0][0]
+    );
+  }
+
+  async function where(filter) {
+    return makeDB()
+      .select()
+      .from("users")
+      .where(filter);
   }
 
   return {
@@ -146,6 +161,7 @@ const makeUserService = function(makeDB) {
     resetPassword,
     updateWhere,
     changeEmail,
+    where,
     requestEmailChange
   };
 };

@@ -1,16 +1,16 @@
 const yup = require("yup");
 module.exports = function(ApplicationService) {
-  return async data => {
+  return async (user, data) => {
+    if (!["employer", "jobseeker"].includes(user.role)) {
+      throw new Error("Unauthorized");
+    }
+
     const validData = await validate(data);
-    return await ApplicationService.create(validData);
+    return await ApplicationService.createWithResume(user, validData);
   };
 };
 
 const schema = yup.object().shape({
-  jobSeekerId: yup
-    .number()
-    .integer()
-    .required(),
   resumeId: yup
     .number()
     .integer()

@@ -1,20 +1,21 @@
-module.exports = UserService => controller => async req => {
-  if (req.user) {
-    return await controller(req);
-  }
-
+module.exports = (UserService /*signout*/) => controller => async req => {
   try {
-    const user = await UserService.findByEmail(req.session.userEmail);
-    req.user = user;
-    const r = await controller(req);
-    return r;
+    if (!req.user) {
+      req.user = await UserService.findByEmail(req.session.userEmail);
+    }
   } catch (e) {
+    req.session.userEmail = undefined;
+    req.user = undefined;
     return {
       headers: { "Content-Type": "application/json" },
-      status: 404,
+      status: 401,
       body: {
-        error: { code: "NOTFOUND", message: "Page not found" }
+        error: {
+          code: "UNAUTHORIZED",
+          message: "You need to signin to view the page"
+        }
       }
     };
   }
+  return await controller(req);
 };

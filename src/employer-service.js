@@ -1,4 +1,3 @@
-const { hash } = require("argon2");
 const R = require("ramda");
 
 const makeService = function(makeDB) {
@@ -23,14 +22,46 @@ const makeService = function(makeDB) {
   }
 
   async function remove(id) {
-    return makeDB()
-      .delete()
-      .from("employers")
-      .where("id", id);
+    const trx = await makeDB().transaction();
+    try {
+      const vacancyIds = R.map(
+        R.prop("id"),
+        await trx()
+          .select(["vacancies.id"])
+          .from("vacancies")
+          .where("employerId", id)
+      );
+
+      await trx()
+        .delete()
+        .from("vacancySkills")
+        .whereIn("vacancyId", vacancyIds);
+
+      await trx()
+        .delete()
+        .from("vacancies")
+        .whereIn("id", vacancyIds);
+
+      await trx()
+        .delete()
+        .from("employers")
+        .where("userId", id);
+
+      await trx()
+        .delete()
+        .from("users")
+        .where("id", id);
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
   }
-  async function create(credentials) {
-    const passwordHash = await hash(credentials.password);
-    const { title, about, phone, email, username, residence } = credentials;
+
+  async function create(hasher, generateUpdatesToken, credentials) {
+    const passwordHash = await hasher(credentials.password);
+    const { title, about, phone, email, residence } = credentials;
 
     const trx = await makeDB().transaction();
     try {
@@ -38,9 +69,14 @@ const makeService = function(makeDB) {
         email,
         phone,
         passwordHash,
-        username,
         role: "employer",
         confirmedEmail: false
+      });
+
+      const liveUpdatesToken = generateUpdatesToken({
+        id: userId,
+        email,
+        role: "employer"
       });
 
       const [employerId] = await trx("employers").insert({
@@ -49,6 +85,10 @@ const makeService = function(makeDB) {
         about,
         residence
       });
+
+      await trx("users")
+        .update({ liveUpdatesToken })
+        .where("id", userId);
       await trx.commit();
       return userId;
     } catch (e) {

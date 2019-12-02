@@ -3,25 +3,32 @@ const yup = require("yup");
 const R = require("ramda");
 
 module.exports = function(VacancyService) {
-  return async filters => {
-    console.log(
-      R.filter(
-        R.compose(
-          R.not,
-          R.isNil
-        ),
-        await validate({ ...filters, moderationStatus: ModerationStatus.OK })
-      )
-    );
-    return await VacancyService.all(
-      R.filter(
-        R.compose(
-          R.not,
-          R.isNil
-        ),
-        await validate({ ...filters, moderationStatus: ModerationStatus.OK })
-      )
-    );
+  return async (user, filters) => {
+    if (user.role === "jobseeker") {
+      return await VacancyService.all(
+        R.filter(
+          R.compose(
+            R.not,
+            R.isNil
+          ),
+          await validate({ ...filters, moderationStatus: ModerationStatus.OK })
+        )
+      );
+    }
+
+    if (user.role === "admin") {
+      return await VacancyService.all(
+        R.filter(
+          R.compose(
+            R.not,
+            R.isNil
+          ),
+          await validate({ ...filters })
+        )
+      );
+    }
+
+    throw new Error("Unauthorized");
   };
 };
 

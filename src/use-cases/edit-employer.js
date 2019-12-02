@@ -2,10 +2,12 @@ const R = require("ramda");
 const joi = require("@hapi/joi");
 
 module.exports = function(EmployerService) {
-  return async (id, fields) => {
+  return async (user, id, fields) => {
+    if (user.role !== "employer" && user.id !== id) {
+      throw new Error("Unauthorized");
+    }
     const validFields = await validate(fields);
     await EmployerService.update(id, validFields);
-    return await EmployerService.findByID(id);
   };
 };
 

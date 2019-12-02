@@ -1,11 +1,24 @@
 const yup = require("yup");
 const R = require("ramda");
+const ModerationStatus = require("../moderation-status");
 
 module.exports = function(ResumeService) {
-  return async filter => {
-    return await ResumeService.all(
-      await validate({ isActive: true, ...filter })
-    );
+  return async (user, filter) => {
+    if (user.role === "admin") {
+      return await ResumeService.all(await validate(filter));
+    }
+
+    if (user.role === "employer") {
+      return await ResumeService.all(
+        await validate({
+          ...filter,
+          isActive: true,
+          moderationStatus: ModerationStatus.OK
+        })
+      );
+    }
+
+    throw new Error("Cannot process");
   };
 };
 
@@ -13,28 +26,21 @@ const capitalize = R.replace(/^./, R.toUpper);
 const schema = yup.object().shape({
   educations: yup.array().of(yup.number().integer()),
   title: yup.string().transform(capitalize),
-  disabilityId: yup.number().integer(),
-  professions: yup.array().of(yup.string()),
-  skills: yup.array().of(yup.string()),
+  skills: yup.array().of(yup.number().integer()),
   isActive: yup.bool(),
   hasExperience: yup.bool(),
   needsAccessibility: yup.bool(),
   isRemoteOnly: yup.bool(),
+  citizenshipId: yup.number().integer(),
   jobSeekerId: yup.number().integer(),
-  pagination: yup
-    .object()
-    .shape({
-      pageNumber: yup
-        .number()
-        .min(0)
-        .required(),
-      perPage: yup
-        .number()
-        .min(1)
-        .required()
-    })
-    .nullable()
-    .default(null)
+  disabilityTypeId: yup.number().integer(),
+  disabilityGroupId: yup.number().integer(),
+  specialties: yup.array().of(yup.string()),
+  moderationStatus: yup
+    .string()
+    .oneOf(Object.values(ModerationStatus))
+    .default(ModerationStatus.OK),
+  paginationState: yup.number().integer()
 });
 
 async function validate(data) {

@@ -1,7 +1,10 @@
 const joi = require("@hapi/joi");
 
 module.exports = function(UserService, processImage) {
-  return async (userId, file) => {
+  return async (user, userId, file) => {
+    if (user.id != userId) {
+      throw new Error("Unauthorized");
+    }
     const imageId = await processImage(file);
     await UserService.update(await validate(userId), {
       profilePicId: imageId

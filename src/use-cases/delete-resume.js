@@ -1,5 +1,9 @@
 module.exports = function(ResumeService) {
-  return async id => {
-    return await ResumeService.remove(id);
+  return async (user, id) => {
+    if (user.role !== "jobseeker") {
+      throw new Error("Unauthorized");
+    }
+
+    await ResumeService.removeForJobSeeker(user.id, id);
   };
 };

@@ -22,9 +22,9 @@ const makeService = function(makeDB) {
   }
 
   async function update(id, fields) {
-    return await makeDB("partners")
-      .update()
-      .values(fields)
+    return await makeDB()
+      .update(fields)
+      .from("partners")
       .where("id", id);
   }
 

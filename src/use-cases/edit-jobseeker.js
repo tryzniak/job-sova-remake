@@ -3,10 +3,12 @@ const joi = require("@hapi/joi").extend(require("@hapi/joi-date"));
 const { subYears } = require("date-fns");
 
 module.exports = function(JobseekerService) {
-  return async (id, fields) => {
+  return async (user, id, fields) => {
+    if (user.role !== "jobseeker" || user.id != id) {
+      throw new Error("Unauthorized");
+    }
     const validFields = await validate(fields);
     await JobseekerService.update(id, validFields);
-    return await JobseekerService.findByID(id);
   };
 };
 
@@ -29,7 +31,7 @@ async function validate(data) {
   try {
     return await schema.validateAsync(data, { stripUnknown: true });
   } catch (e) {
-    e.code = "ER_BAD_ARGUMENTS";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }

@@ -8,9 +8,10 @@ const makeService = function(makeDB) {
 
   async function findByID(id) {
     const record = await makeDB()
-      .select()
+      .select(["callbacks.*", "partners.email as partnerEmail"])
       .from("callbacks")
-      .where("id", id)
+      .join("partners", "callbacks.partnerId", "partners.id")
+      .where("callbacks.id", id)
       .first();
     if (!record) {
       throw new Error("Record not found");
@@ -26,8 +27,17 @@ const makeService = function(makeDB) {
       .where("id", id);
   }
 
+  async function where(filter) {
+    return await makeDB().select().from("callbacks").where(filter)
+  }
+  async function all() {
+    return await makeDB().select().from("callbacks");
+  }
+
   return {
     findByID,
+    where,
+    all,
     update,
     create
   };

@@ -1,10 +1,16 @@
 const yup = require("yup");
 const R = require("ramda");
 
-module.exports = function(VacancyService) {
-  return async data => {
+module.exports = function(VacancyService, sendMail) {
+  return async (currentUser, data) => {
+    if (currentUser.role !== "employer") {
+      throw new Error("Unauthorized");
+    }
+
     const validData = await validate(data);
-    return await VacancyService.create(validData);
+    const id = await VacancyService.create(validData);
+    sendMail(`/vacancies/${id}`)
+    return id
   };
 };
 
@@ -30,6 +36,7 @@ const schema = yup.object().shape({
   skills: yup
     .array()
     .of(yup.string())
+    .max(10)
     .required(),
   isActive: yup
     .bool()

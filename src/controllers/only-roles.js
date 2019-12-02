@@ -4,9 +4,12 @@ const onlyRoles = roles => controller => async req => {
   if (!R.contains(R.path(["user", "role"], req), roles)) {
     return {
       headers: { "Content-Type": "application/json" },
-      status: 404,
+      status: 401,
       body: {
-        error: { code: "NOTFOUND", message: "Page not found" }
+        error: {
+          code: "UNAUTHORIZED",
+          message: "You need to login to view the page"
+        }
       }
     };
   }

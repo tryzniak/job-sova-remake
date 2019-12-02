@@ -2,7 +2,7 @@ const R = require("ramda");
 const { hash } = require("argon2");
 
 const makeService = function(makeDB) {
-  async function create(credentials) {
+  async function create(hash, generateUpdatesToken, credentials) {
     const passwordHash = await hash(credentials.password);
     const {
       firstName,
@@ -49,7 +49,7 @@ const makeService = function(makeDB) {
       .update(fields)
       .from("jobSeekers")
       .join("users", "users.id", "jobSeekers.userId")
-      .where({ userId, role: "jobseeker" });
+      .where({ userId: id, role: "jobseeker" });
   }
 
   async function findByID(id) {
@@ -84,8 +84,53 @@ const makeService = function(makeDB) {
     );
   }
 
+  async function remove(id) {
+    const trx = await makeDB().transaction();
+    try {
+      const resumeIds = R.map(
+        R.prop("id"),
+        await trx()
+          .select(["id"])
+          .from("resumes")
+          .where("jobseekerId", id)
+      );
+
+      await Promise.all(
+        R.map(
+          table =>
+            trx()
+              .delete()
+              .from(table)
+              .whereIn("resumeId", resumeIds),
+          ["resumeSkills", "resumeExperiences", "resumeEducations"]
+        )
+      );
+
+      await trx()
+        .delete()
+        .from("resumes")
+        .where("jobSeekerId", id);
+
+      await trx()
+        .delete()
+        .from("jobSeekers")
+        .where("userId", id);
+
+      await trx()
+        .delete()
+        .from("users")
+        .where("id", id);
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  }
+
   return {
     create,
+    remove,
     update,
     findByID
   };

@@ -2,7 +2,12 @@ const R = require("ramda");
 const joi = require("@hapi/joi");
 const datefns = require("date-fns");
 
-module.exports = function(UserService, sendEmail, generateToken) {
+module.exports = function(
+  UserService,
+  sendEmail,
+  generateCallbackUrl,
+  generateToken
+) {
   return async email => {
     const validEmail = await validate(email);
     const token = await generateToken();
@@ -17,7 +22,7 @@ module.exports = function(UserService, sendEmail, generateToken) {
         )
       }
     );
-    await sendEmail(validEmail, token);
+    sendEmail(validEmail, await generateCallbackUrl(token));
   };
 };
 

@@ -6,9 +6,10 @@ module.exports = function(useCase) {
         status: 200,
         body: {
           data: await useCase(
+            req.user,
             req.params.jobSeekerId,
             req.params.partnerId,
-            req.body
+            req.body.data
           )
         }
       };

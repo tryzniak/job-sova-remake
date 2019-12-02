@@ -10,6 +10,7 @@ function unflatten(rows) {
             return R.filter(R.identity, {
               id: value.id,
               title: value.title,
+              moderationStatus: value.moderationStatus,
               employerId: value.employerId,
               about: value.about,
               isActive: Boolean(value.isActive),
@@ -50,6 +51,52 @@ function unflatten(rows) {
   );
 }
 const makeService = function(makeDB) {
+  async function updateForEmployer(employerId, id, data) {
+    // todo deduplicate
+    const trx = await makeDB().transaction();
+    try {
+      if (data.skills) {
+        await trx("vacancySkills")
+          .delete()
+          .where("vacancyId", id);
+        await trx.raw(
+          trx("skills")
+            .insert(data.skills.map(title => ({ title })))
+            .toString()
+            .replace("insert", "insert ignore")
+        );
+
+        if (data.skills.length) {
+          await trx.raw(
+            "insert into vacancySkills (vacancyId, skillId) select ?, id from skills where title in (?)",
+            [id, data.skills]
+          );
+        }
+      }
+
+      if (data.location) {
+        const [markerId] = await trx("markers").insert(data.location);
+        await trx("vacancies")
+          .update({ markerId })
+          .where("id", id);
+      }
+
+      const restUpdateData = R.omit(["skills", "location"], data);
+
+      if (!R.isEmpty(restUpdateData)) {
+        await trx()
+          .update(restUpdateData)
+          .from("vacancies")
+          .where({ id, employerId });
+      }
+
+      await trx.commit();
+      return id;
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  }
   async function update(id, data) {
     const trx = await makeDB().transaction();
     try {
@@ -96,7 +143,7 @@ const makeService = function(makeDB) {
     }
   }
 
-  async function all(predicate = { moderationStatus: ModerationStatus.OK }) {
+  async function all(predicate) {
     return makeDB()
       .select([
         "v.*",
@@ -161,12 +208,27 @@ const makeService = function(makeDB) {
       .then(unflatten);
   }
 
-  async function clear() {
-    return makeDB()
-      .delete()
-      .into("vacancies");
-  }
+  async function removeForEmployer(employerId, id) {
+    const trx = await makeDB().transaction();
+    try {
+      await trx()
+        .delete()
+        .from("vacancySkills")
+        .where("vacancyId", id);
+      const rowsAffected = await trx()
+        .delete()
+        .from("vacancies")
+        .where({ id, employerId });
+      if (rowsAffected !== 1) {
+        throw new Error("Not unique");
+      }
 
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+  }
   async function remove(id) {
     const trx = await makeDB().transaction();
     try {
@@ -228,6 +290,7 @@ const makeService = function(makeDB) {
   }
 
   async function findByID(id) {
+    // todo dedup
     const record = await makeDB()
       .select([
         "vacancies.*",
@@ -257,9 +320,10 @@ const makeService = function(makeDB) {
 
   return {
     create,
-    clear,
     remove,
     update,
+    updateForEmployer,
+    removeForEmployer,
     all,
     nearby,
     findByID

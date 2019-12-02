@@ -1,7 +1,12 @@
 const joi = require("@hapi/joi");
 const datefns = require("date-fns");
 
-module.exports = function(UserService, sendVerificationUrl, generateToken) {
+module.exports = function(
+  UserService,
+  sendVerificationUrl,
+  generateToken,
+  generateCallbackUrl
+) {
   return async (email, newEmail) => {
     const token = await generateToken();
     await UserService.requestEmailChange(
@@ -9,7 +14,7 @@ module.exports = function(UserService, sendVerificationUrl, generateToken) {
       await validate(newEmail),
       token
     );
-    await sendVerificationUrl(email, token);
+    sendVerificationUrl(email, await generateCallbackUrl(token));
   };
 };
 

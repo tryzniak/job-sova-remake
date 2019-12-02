@@ -2,11 +2,23 @@ const yup = require("yup");
 const R = require("ramda");
 const { subYears } = require("date-fns");
 const phone = require("phone");
+const { hash } = require("argon2");
 
-module.exports = function(JobseekerService) {
+module.exports = function(
+  JobseekerService,
+  generateUpdatesToken,
+  changeEmailUseCase
+) {
   return async data => {
     const validData = await validate(data);
-    return await JobseekerService.create(validData);
+    const id = await JobseekerService.create(
+      hash,
+      generateUpdatesToken,
+      validData
+    );
+
+    await changeEmailUseCase(validData.email, validData.email);
+    return id;
   };
 };
 

@@ -1,12 +1,9 @@
 module.exports = useCase => async req => {
   try {
-    const result = await useCase(token, req.body.data);
+    await useCase(req.params.token);
     return {
       headers: { "Content-Type": "application/json" },
-      status: 200,
-      body: {
-        data: result
-      }
+      status: 200
     };
   } catch (e) {
     return {

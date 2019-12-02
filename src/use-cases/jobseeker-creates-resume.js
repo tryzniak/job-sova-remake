@@ -1,16 +1,29 @@
 const yup = require("yup");
 const R = require("ramda");
-const datefns = require("date-fns");
+const { subYears } = require("date-fns");
+const phone = require("phone");
 
-module.exports = function(ResumeService) {
-  return async data => {
+module.exports = function(ResumeService, sendEmail) {
+  return async (user, data) => {
+    if (user.role !== "jobseeker") {
+      throw new Error("Unauthorized");
+    }
     const validData = await validate(data);
-    return await ResumeService.create(validData);
+    const id = await ResumeService.create(validData);
+    sendEmail(`/resumes/${id}`)
+    return id
   };
 };
 
 const capitalize = R.replace(/^./, R.toUpper);
 const schema = yup.object().shape({
+  firstName: yup.string().required(),
+  lastName: yup.string().required(),
+  patronymicName: yup.string().required(),
+  dateOfBirth: yup
+    .date()
+    .max(subYears(new Date(), 18))
+    .required(),
   jobSeekerId: yup
     .number()
     .integer()
@@ -19,13 +32,29 @@ const schema = yup.object().shape({
     .string()
     .transform(capitalize)
     .required(),
+  email: yup
+    .string()
+    .email()
+    .required(),
+  phone: yup
+    .string()
+    .transform(value => phone(value, "BLR")[0])
+    .test(
+      "is-phone",
+      "${path} should confirm to +375331234567 format",
+      value => value !== undefined
+    )
+    .required(),
+  communicationMeans: yup
+    .string()
+    .oneOf(["phone", "email"])
+    .required(),
   about: yup
     .string()
     .transform(capitalize)
     .max(600)
     .required(),
-  // TODO validate
-  disabilityId: yup
+  citizenshipId: yup
     .number()
     .integer()
     .required(),
@@ -34,18 +63,10 @@ const schema = yup.object().shape({
     .string()
     .max(256)
     .required(),
-  professions: yup
-    .array()
-    .of(yup.string())
-    .required(),
   skills: yup
     .array()
     .of(yup.string())
-    .required(),
-  educations: yup.array().of(yup.number().integer()),
-  hasExperience: yup
-    .bool()
-    .default(true)
+    .max(10)
     .required(),
   isActive: yup
     .bool()
@@ -107,7 +128,7 @@ async function validate(data) {
       stripUnknown: true
     });
   } catch (e) {
-    e.code = "ER_SIGNUP_VALIDATE";
+    e.code = "ER_VALIDATE"
     throw e;
   }
 }

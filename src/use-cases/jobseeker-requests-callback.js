@@ -2,11 +2,15 @@ const R = require("ramda");
 const joi = require("@hapi/joi");
 const phone = require("phone");
 
-module.exports = function(CallbackService) {
-  return async (jobSeekerId, partnerId, fields) => {
+module.exports = function(CallbackService, sendEmail) {
+  return async (currentUser, jobSeekerId, partnerId, fields) => {
+    if (currentUser.role !== "jobseeker" && currentUser.id !== jobSeekerId) {
+      throw new Error("Unauthorized");
+    }
     const validFields = await validate({ partnerId, jobSeekerId, ...fields });
     const id = await CallbackService.create(validFields);
-    return await CallbackService.findByID(id);
+    sendEmail(`/callbacks/${id}`)
+    return id
   };
 };
 

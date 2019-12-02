@@ -1,10 +1,23 @@
 const yup = require("yup");
 const R = require("ramda");
+const { hash } = require("argon2");
 
-module.exports = function(EmployerService) {
+module.exports = function(
+  EmployerService,
+  generateUpdatesToken,
+  changeEmailUseCase
+) {
   return async data => {
     const validData = await validate(data);
-    return await EmployerService.create(validData);
+    const id = await EmployerService.create(
+      hash,
+      generateUpdatesToken,
+      validData
+    );
+
+    await changeEmailUseCase(validData.email, validData.email);
+
+    return id;
   };
 };
 
@@ -18,11 +31,6 @@ const schema = yup.object().shape({
     .string()
     .transform(capitalize)
     .required(),
-  phone: yup
-    .string()
-    .transform(capitalize)
-    .required(),
-  username: yup.string().required(),
   password: yup
     .string()
     .min(8)
@@ -45,7 +53,7 @@ async function validate(data) {
       stripUnknown: true
     });
   } catch (e) {
-    e.code = "ER_SIGNUP_VALIDATE";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }
