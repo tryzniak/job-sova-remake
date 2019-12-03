@@ -179,15 +179,17 @@ const makeService = function(makeDB) {
               );
             }
 
+            if (predicate.paginationState) {
+          builder.where("vacancies.id", "<", predicate.paginationState);
+            }
+
             builder.where(
               R.omit(
-                ["pagination", "nearby", "skills", "minSalary", "maxSalary"],
+                ["paginationState", "nearby", "skills", "minSalary", "maxSalary"],
                 predicate
               )
             );
-          })
-          .limit(predicate.pagination.perPage)
-          .offset(predicate.pagination.pageNumber)
+          }).limit(50).orderBy("id", "desc")
       )
       .join("markers", "markers.id", "v.markerId")
       .leftJoin(

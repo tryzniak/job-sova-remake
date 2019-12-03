@@ -79,21 +79,7 @@ const schema = yup.object().shape({
     .min(yup.ref("minSalary")),
   hasTrainingOrCourse: yup.boolean(),
   experienceIsRequired: yup.boolean(),
-  pagination: yup
-    .object()
-    .shape({
-      perPage: yup
-        .number()
-        .positive()
-        .required()
-        .default(1),
-      pageNumber: yup
-        .number()
-        .min(0)
-        .required()
-        .default(0)
-    })
-    .required()
+  paginationState: yup.number().integer(),
 });
 
 async function validate(data) {

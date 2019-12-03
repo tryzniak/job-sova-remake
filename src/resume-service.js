@@ -231,8 +231,8 @@ const makeService = function(makeDB) {
           builder.where("resumes.id", "<", predicate.paginationState);
         }
 
-        if (predicate.moderationState) {
-          builder.where("moderationState", predicate.moderationState);
+        if (predicate.moderationStatus) {
+          builder.where("moderationStatus", predicate.moderationStatus);
         }
 
         if (predicate.jobSeekerId) {
