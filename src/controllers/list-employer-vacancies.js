@@ -1,9 +1,6 @@
 module.exports = function(useCase) {
   return async req => {
-    const result = await useCase(req.user, req.params.id, {
-      pageNumber: 0,
-      perPage: 10
-    });
+    const result = await useCase(req.user, req.params.id, req.query.paginationState)
     return {
       headers: { "Content-Type": "application/json" },
       status: 200,

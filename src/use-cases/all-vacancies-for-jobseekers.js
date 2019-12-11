@@ -43,7 +43,6 @@ async function validate(data) {
   }
 }
 
-const capitalize = R.replace(/^./, R.toUpper);
 const schema = yup.object().shape({
   moderationStatus: yup
     .string()
@@ -51,7 +50,7 @@ const schema = yup.object().shape({
     .required(),
   employerId: yup.number().integer(),
   educationId: yup.number().integer(),
-  title: yup.string().transform(capitalize),
+  title: yup.string(),
   disabilityId: yup.number().integer(),
   profession: yup.string(),
   skills: yup.array().of(yup.string()),
