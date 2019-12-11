@@ -283,7 +283,7 @@ app.post(
   )
 );
 
-app.put(
+app.patch(
   "/citizenships/:id",
   toCallback(
     sessionUser(
@@ -317,7 +317,7 @@ app.put(
   )
 );
 
-app.put(
+app.patch(
   "/vacancies/:id",
   toCallback(
     require("./controllers/edit-vacancy")(
@@ -462,7 +462,7 @@ app.get(
   )
 );
 
-app.put(
+app.patch(
   "/resumes/:id",
   toCallback(
     sessionUser(
@@ -604,7 +604,7 @@ app.post(
   )
 );
 
-app.put(
+app.patch(
   "/employers/:id",
   toCallback(
     sessionUser(
@@ -781,7 +781,7 @@ app.get(
   )
 );
 
-app.put(
+app.patch(
   "/partners/:id",
   toCallback(
     sessionUser(
@@ -864,7 +864,7 @@ app.post(
   )
 );
 
-app.put(
+app.patch(
   "/jobseekers/:id",
   toCallback(
     sessionUser(
@@ -962,7 +962,7 @@ app.post(
   )
 );
 
-app.put(
+app.patch(
   "/courses/:id",
   toCallback(
     sessionUser(
