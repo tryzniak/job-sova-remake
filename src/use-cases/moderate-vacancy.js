@@ -2,7 +2,7 @@ const yup = require("yup");
 const R = require("ramda");
 const ModerationStatus = require("../moderation-status");
 
-const moderateVacancy = (VacancyService, broadcast) => async (
+const moderateVacancy = (VacancyService) => async (
   user,
   id,
   { moderationStatus }
@@ -17,6 +17,7 @@ const moderateVacancy = (VacancyService, broadcast) => async (
     e.code = "ER_EDIT_EMPTY";
     throw e;
   }
+
   const affectedRows = await VacancyService.update(id, validFields);
   if (affectedRows === 0) {
     const e = new Error("Could not edit");
@@ -24,12 +25,6 @@ const moderateVacancy = (VacancyService, broadcast) => async (
     throw e;
   }
 
-  if (moderationStatus === ModerationStatus.OK) {
-    broadcast({
-      resource: "vacancies",
-      payload: { vacancyId: id, moderationStatus }
-    });
-  }
 };
 
 async function validate(fields) {
