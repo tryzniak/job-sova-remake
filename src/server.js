@@ -8,6 +8,7 @@ const io = require("socket.io")();
 const ModerationStatus = require("./moderation-status");
 
 const app = express();
+const appV1 = express();
 const sessionSecret = process.env.SESSION_SECRET || "budgies";
 const sessionName = process.env.SESSION_NAME || "sova";
 const domain = process.env.DOMAIN || "localhost";
@@ -184,10 +185,10 @@ ioChats.on("connection", socket => {
   });
 });
 
-app.use(sess);
+appV1.use(sess);
 
-app.use(cors());
-app.use(bodyParser.json());
+appV1.use(cors());
+appV1.use(bodyParser.json());
 
 const toCallback = controller => async (req, res) => {
   try {
@@ -263,7 +264,7 @@ const toCallback = controller => async (req, res) => {
 };
 
 const CitizenshipService = require("./citizenship-service")(makeDb);
-app.get(
+appV1.get(
   "/citizenships",
   toCallback(
     require("./controllers/all-citizenships")(
@@ -272,7 +273,7 @@ app.get(
   )
 );
 
-app.post(
+appV1.post(
   "/citizenships",
   toCallback(
     sessionUser(
@@ -283,7 +284,7 @@ app.post(
   )
 );
 
-app.patch(
+appV1.patch(
   "/citizenships/:id",
   toCallback(
     sessionUser(
@@ -295,7 +296,7 @@ app.patch(
 );
 
 const VacancyService = require("./vacancy-service")(makeDb);
-app.get(
+appV1.get(
   "/vacancies",
   toCallback(
     sessionUser(
@@ -306,7 +307,7 @@ app.get(
   )
 );
 
-app.put(
+appV1.put(
   "/vacancies/:id/moderate",
   toCallback(
     sessionUser(
@@ -317,7 +318,7 @@ app.put(
   )
 );
 
-app.patch(
+appV1.patch(
   "/vacancies/:id",
   toCallback(
     require("./controllers/edit-vacancy")(
@@ -326,7 +327,7 @@ app.patch(
   )
 );
 
-app.get(
+appV1.get(
   "/vacancies/:id",
   toCallback(
     sessionUser(
@@ -337,7 +338,7 @@ app.get(
   )
 );
 
-app.delete(
+appV1.delete(
   "/vacancies/:id",
   toCallback(
     sessionUser(
@@ -349,7 +350,7 @@ app.delete(
 );
 
 const EducationService = require("./education-service")(makeDb);
-app.get(
+appV1.get(
   "/educations",
   toCallback(
     require("./controllers/all-educations")(
@@ -359,7 +360,7 @@ app.get(
 );
 
 const SpecialtyService = require("./specialty-service")(makeDb);
-app.get(
+appV1.get(
   "/specialties",
   toCallback(
     sessionUser(
@@ -371,7 +372,7 @@ app.get(
 );
 
 const EmployerService = require("./employer-service")(makeDb);
-app.get(
+appV1.get(
   "/employers",
   toCallback(
     sessionUser(
@@ -383,7 +384,7 @@ app.get(
 );
 
 const OccupationService = require("./occupation-service")(makeDb);
-app.get(
+appV1.get(
   "/occupations",
   toCallback(
     require("./controllers/all-occupations")(
@@ -393,7 +394,7 @@ app.get(
 );
 
 const SkillService = require("./skill-service")(makeDb);
-app.get(
+appV1.get(
   "/skills",
   toCallback(
     sessionUser(
@@ -404,7 +405,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/skills/:id",
   toCallback(
     sessionUser(
@@ -416,7 +417,7 @@ app.get(
 );
 
 const DisabilityTypeService = require("./disability-type-service")(makeDb);
-app.get(
+appV1.get(
   "/disabilityTypes",
   toCallback(
     require("./controllers/all-disabilities")(
@@ -426,7 +427,7 @@ app.get(
 );
 
 const DisabilityGroupService = require("./disability-group-service")(makeDb);
-app.get(
+appV1.get(
   "/disabilityTypes",
   toCallback(
     require("./controllers/all-disabilities")(
@@ -436,7 +437,7 @@ app.get(
 );
 
 const ResumeService = require("./resume-service")(makeDb);
-app.post(
+appV1.post(
   "/resumes",
   toCallback(
     sessionUser(
@@ -451,7 +452,7 @@ app.post(
 );
 
 const algoliaSearchPlaces = require("algoliasearch").initPlaces();
-app.get(
+appV1.get(
   "/geocode",
   toCallback(
     require("./controllers/employer-geocodes-address")(
@@ -462,7 +463,7 @@ app.get(
   )
 );
 
-app.patch(
+appV1.patch(
   "/resumes/:id",
   toCallback(
     sessionUser(
@@ -476,7 +477,7 @@ app.patch(
   )
 );
 
-app.put(
+appV1.put(
   "/resumes/:id/moderate",
   toCallback(
     sessionUser(
@@ -487,7 +488,7 @@ app.put(
   )
 );
 
-app.delete(
+appV1.delete(
   "/resumes/:id",
   toCallback(
     sessionUser(
@@ -498,7 +499,7 @@ app.delete(
   )
 );
 
-app.get(
+appV1.get(
   "/resumes",
   toCallback(
     sessionUser(
@@ -509,7 +510,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/resumes/:id",
   toCallback(
     sessionUser(
@@ -520,7 +521,7 @@ app.get(
   )
 );
 
-app.post(
+appV1.post(
   "/vacancies",
   toCallback(
     sessionUser(
@@ -532,7 +533,7 @@ app.post(
 );
 
 const ApplicationService = require("./application-service")(makeDb);
-app.post(
+appV1.post(
   "/applications/resumes/:resumeId/vacancies/:vacancyId",
   toCallback(
     sessionUser(
@@ -543,7 +544,7 @@ app.post(
   )
 );
 
-app.post(
+appV1.post(
   "/applications/jobSeekers/:jobSeekerId/vacancies/:vacancyId",
   toCallback(
     sessionUser(
@@ -563,9 +564,9 @@ const signinUseCase = require("./use-cases/signin")(
 );
 
 const signinController = require("./controllers/signin")(signinUseCase);
-app.post("/signin", toCallback(signinController));
+appV1.post("/signin", toCallback(signinController));
 
-app.post("/signout", async function(req, res) {
+appV1.post("/signout", async function(req, res) {
   req.session.userEmail = undefined;
   req.user = undefined;
   return res.status(200).end();
@@ -581,7 +582,7 @@ const verifyUpdatesToken = token => {
 };
 
 const generateConfirmEmailToken = nanoid;
-app.post(
+appV1.post(
   "/employers",
   toCallback(
     require("./controllers/signup-user")(
@@ -604,7 +605,7 @@ app.post(
   )
 );
 
-app.patch(
+appV1.patch(
   "/employers/:id",
   toCallback(
     sessionUser(
@@ -616,7 +617,7 @@ app.patch(
 );
 
 const JobseekerService = require("./jobseeker-service")(makeDb);
-app.post(
+appV1.post(
   "/jobseekers",
   toCallback(
     require("./controllers/signup-jobseeker")(
@@ -639,7 +640,7 @@ app.post(
   )
 );
 
-app.delete(
+appV1.delete(
   "/users/:id",
   toCallback(
     sessionUser(
@@ -654,7 +655,7 @@ app.delete(
 );
 
 const CallbackService = require("./callback-service")(makeDb);
-app.post(
+appV1.post(
   "/callbacks/jobseekers/:jobSeekerId/partners/:partnerId",
   toCallback(
     sessionUser(
@@ -668,7 +669,7 @@ app.post(
   )
 );
 
-app.get(
+appV1.get(
   "/callbacks/",
   toCallback(
     sessionUser(
@@ -681,7 +682,7 @@ app.get(
   )
 );
 
-app.put(
+appV1.put(
   "/callbacks/:id/moderate",
   toCallback(
     sessionUser(
@@ -701,7 +702,7 @@ app.put(
 );
 
 const QuestionService = require("./question-service")(makeDb);
-app.post(
+appV1.post(
   "/questions/jobseekers/:jobSeekerId/partners/:partnerId",
   toCallback(
     sessionUser(
@@ -715,7 +716,7 @@ app.post(
   )
 );
 
-app.get(
+appV1.get(
   "/questions/",
   toCallback(
     sessionUser(
@@ -728,7 +729,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/questions/:id",
   toCallback(
     sessionUser(
@@ -741,7 +742,7 @@ app.get(
   )
 );
 
-app.put(
+appV1.put(
   "/questions/:id/moderate",
   toCallback(
     sessionUser(
@@ -761,7 +762,7 @@ app.put(
 );
 
 const PartnerService = require("./partner-service")(makeDb);
-app.post(
+appV1.post(
   "/partners",
   toCallback(
     sessionUser(
@@ -772,7 +773,7 @@ app.post(
   )
 );
 
-app.get(
+appV1.get(
   "/partners/:id",
   toCallback(
     require("./controllers/show-partner")(
@@ -781,7 +782,7 @@ app.get(
   )
 );
 
-app.patch(
+appV1.patch(
   "/partners/:id",
   toCallback(
     sessionUser(
@@ -792,7 +793,7 @@ app.patch(
   )
 );
 
-app.get(
+appV1.get(
   "/jobseekers/:id",
   toCallback(
     sessionUser(
@@ -804,7 +805,7 @@ app.get(
 );
 
 const { hash } = require("argon2");
-app.post(
+appV1.post(
   "/reset-password/:token",
   toCallback(
     require("./controllers/user-finishes-password-reset")(
@@ -813,7 +814,7 @@ app.post(
   )
 );
 
-app.post(
+appV1.post(
   "/change-email/:token",
   toCallback(
     sessionUser(
@@ -824,7 +825,7 @@ app.post(
   )
 );
 
-app.post(
+appV1.post(
   "/change-email",
   toCallback(
     sessionUser(
@@ -845,7 +846,7 @@ app.post(
   )
 );
 
-app.post(
+appV1.post(
   "/reset-password/",
   toCallback(
     require("./controllers/user-begins-password-reset")(
@@ -864,7 +865,7 @@ app.post(
   )
 );
 
-app.patch(
+appV1.patch(
   "/jobseekers/:id",
   toCallback(
     sessionUser(
@@ -875,7 +876,7 @@ app.patch(
   )
 );
 
-app.get(
+appV1.get(
   "/me/applications",
   toCallback(
     sessionUser(
@@ -886,7 +887,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/employers/:id/vacancies",
   toCallback(
     sessionUser(
@@ -897,7 +898,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/jobseekers/:id/resumes",
   toCallback(
     sessionUser(
@@ -908,7 +909,7 @@ app.get(
   )
 );
 
-app.delete(
+appV1.delete(
   "/applications/messages/:id",
   toCallback(
     sessionUser(
@@ -919,7 +920,7 @@ app.delete(
   )
 );
 
-app.get(
+appV1.get(
   "/applications/messages/:id",
   toCallback(
     sessionUser(
@@ -930,7 +931,7 @@ app.get(
   )
 );
 
-app.get(
+appV1.get(
   "/applications/messages",
   toCallback(
     sessionUser(
@@ -942,7 +943,7 @@ app.get(
 );
 
 const CourseService = require("./course-service")(makeDb);
-app.get(
+appV1.get(
   "/courses/",
   toCallback(
     require("./controllers/list-courses")(
@@ -951,7 +952,7 @@ app.get(
   )
 );
 
-app.post(
+appV1.post(
   "/courses/",
   toCallback(
     sessionUser(
@@ -962,7 +963,7 @@ app.post(
   )
 );
 
-app.patch(
+appV1.patch(
   "/courses/:id",
   toCallback(
     sessionUser(
@@ -973,7 +974,7 @@ app.patch(
   )
 );
 
-app.delete(
+appV1.delete(
   "/courses/:id",
   toCallback(
     sessionUser(
@@ -984,7 +985,7 @@ app.delete(
   )
 );
 
-app.get(
+appV1.get(
   "/courses/:id",
   toCallback(
     require("./controllers/show-course")(
@@ -996,7 +997,7 @@ app.get(
 const path = require("path");
 const profileImgsDir = path.resolve("public");
 const sharp = require("sharp");
-app.use("/profile-imgs/", express.static(profileImgsDir));
+appV1.use("/profile-imgs/", express.static(profileImgsDir));
 
 const processImage = require("./make-image-pipeline")(
   async format => `${await nanoid()}.${format}`,
@@ -1006,7 +1007,7 @@ const processImage = require("./make-image-pipeline")(
   512
 );
 const multer = require("multer");
-app.use(
+appV1.use(
   "/users/:userId/upload-profile-pic",
   multer({ mimetype: "image/*", limits: { fileSize: 1000000 } }).single(
     "image"
@@ -1022,5 +1023,7 @@ app.use(
     )
   )
 );
+
+app.use("/api/v1/", appV1)
 
 module.exports = { httpServer: app, wsServer: io };
