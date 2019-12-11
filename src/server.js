@@ -5,7 +5,6 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const session = require("cookie-session");
 const io = require("socket.io")();
-const ModerationStatus = require("./moderation-status");
 
 const app = express();
 const appV1 = express();
