@@ -1,10 +1,10 @@
 const ModerationStatus = require("../moderation-status");
 
 module.exports = function(VacancyService) {
-  return async (user, employerId, pagination) => {
+  return async (user, employerId, paginationState) => {
     if (user.role === "jobseeker") {
       return await VacancyService.all({
-        pagination,
+        paginationState,
         moderationStatus: ModerationStatus.OK,
         employerId
       });
@@ -14,7 +14,7 @@ module.exports = function(VacancyService) {
       (user.id == employerId && user.role === "employer") ||
       user.role === "admin"
     ) {
-      return await VacancyService.all({ pagination, employerId });
+      return await VacancyService.all({ paginationState, employerId });
     }
   };
 };
