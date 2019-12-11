@@ -1,12 +1,15 @@
+# Make sure everything is right here
+# (I'm a horrible person)
+#
 start-dev:
 	npm run start
 
 start-db:
-	docker run -p 3366:3306 --name jobsova-remake -e MYSQL_DATABASE=jobsova-remake -e MYSQL_ROOT_PASSWORD=mypassword --rm mysql:5.7
+	docker run -p 3306:3306 --name jobsova-remake -e MYSQL_DATABASE=jobsova -e MYSQL_ROOT_PASSWORD=qwerty --rm mysql:5.7
 
 db-init:
-	node db/seed.js
+	node db/init.js
 
 client-db:
-	docker exec -it jobsova-remake mysql -u root -p jobsova-remake
+	docker exec -it jobsova-remake mysql -u root -p jobsova
 Enter password: 
