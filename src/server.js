@@ -307,7 +307,7 @@ appV1.get(
 );
 
 appV1.put(
-  "/vacancies/:id/moderate",
+  "/vacancies/:id/moderationStatus",
   toCallback(
     sessionUser(
       require("./controllers/edit-vacancy")(
@@ -477,7 +477,7 @@ appV1.patch(
 );
 
 appV1.put(
-  "/resumes/:id/moderate",
+  "/resumes/:id/moderationStatus",
   toCallback(
     sessionUser(
       require("./controllers/edit-resume")(
@@ -682,7 +682,7 @@ appV1.get(
 );
 
 appV1.put(
-  "/callbacks/:id/moderate",
+  "/callbacks/:id/moderationStatus",
   toCallback(
     sessionUser(
       require("./controllers/admin-moderates-callback")(
@@ -742,7 +742,7 @@ appV1.get(
 );
 
 appV1.put(
-  "/questions/:id/moderate",
+  "/questions/:id/moderationStatus",
   toCallback(
     sessionUser(
       require("./controllers/admin-moderates-question")(
