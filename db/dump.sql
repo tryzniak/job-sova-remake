@@ -384,6 +384,7 @@ DROP TABLE IF EXISTS `skills`;
 CREATE TABLE `skills` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `moderationStatus` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NEEDS_REVIEW',
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
 ) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

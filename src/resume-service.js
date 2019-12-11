@@ -186,6 +186,14 @@ const makeService = function(makeDB) {
           .where("id", id);
       }
 
+      if (data.moderationStatus) {
+        await trx().update({moderationStatus: data.moderationStatus}).from(
+          "skills"
+        ).join("resumeSkills", "resumeSkills.skillId", "skills.id").where(
+          "resumeSkills.resumeId", id
+        )
+      }
+
       await trx.commit();
       return id;
     } catch (e) {

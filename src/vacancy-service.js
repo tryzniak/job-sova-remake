@@ -90,6 +90,7 @@ const makeService = function(makeDB) {
           .where({ id, employerId });
       }
 
+
       await trx.commit();
       return id;
     } catch (e) {
@@ -133,6 +134,14 @@ const makeService = function(makeDB) {
           .update(restUpdateData)
           .from("vacancies")
           .where("id", id);
+      }
+
+      if (data.moderationStatus) {
+        await trx().update({moderationStatus: data.moderationStatus}).from(
+          "skills"
+        ).join("vacancySkills", "vacancySkills.skillId", "skills.id").where(
+          "vacancySkills.vacancyId", id
+        )
       }
 
       await trx.commit();
@@ -196,7 +205,6 @@ const makeService = function(makeDB) {
         makeDB()
           .select()
           .from("vacancySkills")
-          .where("moderationStatus", "OK")
           .as("vacancySkillsFiltered"),
         "vacancySkillsFiltered.vacancyId",
         "v.id"
