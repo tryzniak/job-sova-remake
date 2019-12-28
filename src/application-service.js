@@ -1,3 +1,4 @@
+const { notFound } = require("./errors");
 const makeService = function(makeDB) {
   async function createWithResume(user, { resumeId, vacancyId }) {
     const trx = await makeDB().transaction();
@@ -130,9 +131,7 @@ const makeService = function(makeDB) {
       .from("chatMessages")
       .where({ id: messageId, fromUserId: userId });
     if (!affectedRows) {
-      const err = new Error("Record not found");
-      err.code = "ER_NOT_FOUND";
-      throw err;
+      throw notFound;
     }
   }
 

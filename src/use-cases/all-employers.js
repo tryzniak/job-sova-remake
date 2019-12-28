@@ -3,6 +3,7 @@ module.exports = function(EmployerService) {
     if (user.role === "employer") {
       throw new Error("Unauthorized");
     }
+
     return await EmployerService.all();
   };
 };

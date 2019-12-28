@@ -1,12 +1,16 @@
 const R = require("ramda");
+const { notUnique, notFound } = require("./errors");
 
 const makeService = function(makeDB) {
   async function update(id, data) {
-    return makeDB()
+    const affectedRows = await makeDB()
       .update(data)
       .from("employers")
       .join("users", "users.id", "employers.userId")
       .where({ userId: id, role: "employer" });
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function all() {
@@ -47,10 +51,18 @@ const makeService = function(makeDB) {
         .from("employers")
         .where("userId", id);
 
-      await trx()
+      const affectedRows = await trx()
         .delete()
         .from("users")
         .where("id", id);
+
+      if (affectedRows === 0) {
+        throw notFound;
+      }
+
+      if (affectedRows > 1) {
+        throw notUnique;
+      }
 
       await trx.commit();
     } catch (e) {

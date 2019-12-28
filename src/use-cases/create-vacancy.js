@@ -9,8 +9,8 @@ module.exports = function(VacancyService, sendMail) {
 
     const validData = await validate(data);
     const id = await VacancyService.create(validData);
-    sendMail(`/vacancies/${id}`)
-    return id
+    sendMail(`/vacancies/${id}`);
+    return id;
   };
 };
 

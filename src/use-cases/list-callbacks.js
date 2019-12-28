@@ -1,15 +1,9 @@
 module.exports = function(CallbackService) {
-  return async (user, fields) => {
-    if (user.role === "jobseeker") {
-      return CallbackService.where({jobSeekerId: user.id})
-    }
-
+  return async user => {
     if (user.role === "admin") {
-      return CallbackService.all()
+      return CallbackService.all();
     }
 
-    throw new Error("Unauthorized")
-
+    throw new Error("Unauthorized");
   };
 };
-

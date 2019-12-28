@@ -9,8 +9,8 @@ module.exports = function(CallbackService, sendEmail) {
     }
     const validFields = await validate({ partnerId, jobSeekerId, ...fields });
     const id = await CallbackService.create(validFields);
-    sendEmail(`/callbacks/${id}`)
-    return id
+    sendEmail(`/callbacks/${id}`);
+    return id;
   };
 };
 

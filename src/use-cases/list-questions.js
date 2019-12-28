@@ -1,15 +1,9 @@
 module.exports = function(QuestionService) {
-  return async (user, fields) => {
-    if (user.role === "jobseeker") {
-      return QuestionService.where({jobSeekerId: user.id})
-    }
-
+  return async user => {
     if (user.role === "admin") {
-      return QuestionService.all()
+      return QuestionService.all();
     }
 
-    throw new Error("Unauthorized")
-
+    throw new Error("Unauthorized");
   };
 };
-

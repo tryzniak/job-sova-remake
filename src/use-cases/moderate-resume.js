@@ -13,23 +13,18 @@ const moderateVacancy = ResumeService => async (
 
   const validFields = await validate({ id, moderationStatus });
   if (R.isEmpty(validFields)) {
-    const e = new Error("Could not edit");
-    e.code = "ER_EDIT_EMPTY";
+    const e = new Error("Payload is empty");
+    e.code = "ER_VALIDATE";
     throw e;
   }
-  const affectedRows = await ResumeService.update(id, validFields);
-  if (affectedRows === 0) {
-    const e = new Error("Could not edit");
-    e.code = "ER_NOT_FOUND";
-    throw e;
-  }
+  await ResumeService.update(id, validFields);
 };
 
 async function validate(fields) {
   try {
     return await schema.validate(fields, { stripUnknown: true });
   } catch (validationError) {
-    validationError.code = "ER_VALIDATION";
+    validationError.code = "ER_VALIDATE";
     throw validationError;
   }
 }

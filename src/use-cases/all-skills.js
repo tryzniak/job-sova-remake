@@ -1,5 +1,13 @@
+const R = require("ramda");
 module.exports = function(SkillService) {
-  return async () => {
-    return await SkillService.all();
+  return async user => {
+    if (user.role === "admin") {
+      return await SkillService.all();
+    }
+
+    return R.map(
+      R.omit(["moderationStatus"]),
+      await SkillService.all({ moderationStatus: "OK" })
+    );
   };
 };

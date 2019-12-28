@@ -1,9 +1,15 @@
+const { notFound } = require("./errors");
+
 const makeService = function(makeDB) {
   async function update(id, data) {
-    return makeDB()
+    const affectedRows = await makeDB()
       .update(data)
       .from("citizenships")
       .where("id", id);
+
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function all() {
@@ -16,10 +22,7 @@ const makeService = function(makeDB) {
     return makeDB()
       .insert(data)
       .into("citizenships")
-      .then(result => ({
-        id: result[0],
-        ...data
-      }));
+      .then(result => result[0]);
   }
 
   async function findByID(id) {

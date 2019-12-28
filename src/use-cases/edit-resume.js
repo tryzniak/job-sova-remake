@@ -14,7 +14,7 @@ module.exports = function(ResumeService, sendEmail) {
       ...validFields,
       moderationStatus: ModerationStatus.NEEDS_REVIEW
     });
-    sendEmail(`/resumes/${id}`)
+    sendEmail(`/resumes/${id}`);
   };
 };
 
@@ -83,6 +83,11 @@ const schema = joi
     isRemoteOnly: joi.bool(),
     hasExperience: joi.bool(),
     residence: joi.string(),
-    needsAccessibility: joi.bool()
+    needsAccessibility: joi.bool(),
+    location: joi.object({
+      lat: joi.string().required(),
+      lng: joi.string().required(),
+      address: joi.string().required()
+    })
   })
   .min(1);

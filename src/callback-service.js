@@ -1,3 +1,5 @@
+const { notFound } = require("./errors");
+
 const makeService = function(makeDB) {
   async function create(data) {
     const [callbackId] = await makeDB()
@@ -21,17 +23,25 @@ const makeService = function(makeDB) {
   }
 
   async function update(id, fields) {
-    return await makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("callbacks")
       .where("id", id);
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function where(filter) {
-    return await makeDB().select().from("callbacks").where(filter)
+    return await makeDB()
+      .select()
+      .from("callbacks")
+      .where(filter);
   }
   async function all() {
-    return await makeDB().select().from("callbacks");
+    return await makeDB()
+      .select()
+      .from("callbacks");
   }
 
   return {

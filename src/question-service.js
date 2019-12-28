@@ -1,3 +1,5 @@
+const { notUnique, notFound } = require("./errors");
+
 const makeService = function(makeDB) {
   async function create(data) {
     const [id] = await makeDB()
@@ -26,20 +28,23 @@ const makeService = function(makeDB) {
       .from("questions")
       .where("id", id);
     if (rowsAffected > 1) {
-      const err = new Error("Record not unique");
-      err.code = "DB_NOT_UNIQUE";
+      throw notUnique;
     }
 
     if (rowsAffected === 0) {
-      const err = new Error("Record not found");
-      err.code = "DB_NOT_FOUND";
+      throw notFound;
     }
   }
   async function where(filter) {
-    return await makeDB().select().from("questions").where(filter)
+    return await makeDB()
+      .select()
+      .from("questions")
+      .where(filter);
   }
   async function all() {
-    return await makeDB().select().from("questions");
+    return await makeDB()
+      .select()
+      .from("questions");
   }
 
   return {

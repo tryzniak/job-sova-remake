@@ -36,25 +36,21 @@ const config = {
 };
 const sendMail = require("./email-sender")(config);
 
-const makeNotifyAdmin = UserService => subject => async (url) => {
+const makeNotifyAdmin = UserService => subject => async url => {
   const admins = await UserService.where({ role: "admin" });
   const emails = [...new Set(admins.map(admin => admin.email))];
 
-    return sendMail({
-      to: emails,
-      subject: subject,
-      bodyHtml: `Для просмотра пройдите по ссылке <a href="localhost:3000/${url}">localhost:3000/${url}</a>`
-    });
+  return sendMail({
+    to: emails,
+    subject: subject,
+    bodyHtml: `Для просмотра пройдите по ссылке <a href="localhost:3000/${url}">localhost:3000/${url}</a>`
+  });
 };
-
 
 const makeDb = require("./makeDb");
 const UserService = require("./user-service")(makeDb);
 const sessionUser = require("./controllers/session-user")(UserService);
 const notifyAdmin = makeNotifyAdmin(UserService);
-
-
-
 
 const makeUsersOnlineStore = () => {
   const map = new Map();
@@ -205,12 +201,12 @@ const toCallback = controller => async (req, res) => {
   } catch (e) {
     console.error(e);
 
-    if (e.code === "ER_VALIDATE") {
+    if (e.code === "ER_VALIDATE" || e.name === "ValidationError") {
       res.status(400);
       res.json({
         error: {
           message: e.message,
-          code: e.code
+          code: e.code || e.name
         }
       });
       return;
@@ -320,8 +316,10 @@ appV1.put(
 appV1.patch(
   "/vacancies/:id",
   toCallback(
-    require("./controllers/edit-vacancy")(
-      require("./use-cases/edit-vacancy")(VacancyService)
+    sessionUser(
+      require("./controllers/edit-vacancy")(
+        require("./use-cases/edit-vacancy")(VacancyService)
+      )
     )
   )
 );
@@ -427,7 +425,7 @@ appV1.get(
 
 const DisabilityGroupService = require("./disability-group-service")(makeDb);
 appV1.get(
-  "/disabilityTypes",
+  "/disabilityGroups",
   toCallback(
     require("./controllers/all-disabilities")(
       require("./use-cases/all-disabilities")(DisabilityGroupService)
@@ -525,7 +523,10 @@ appV1.post(
   toCallback(
     sessionUser(
       require("./controllers/create-vacancy")(
-        require("./use-cases/create-vacancy")(VacancyService, notifyAdmin("Вакансия ждет модерации"))
+        require("./use-cases/create-vacancy")(
+          VacancyService,
+          notifyAdmin("Вакансия ждет модерации")
+        )
       )
     )
   )
@@ -538,6 +539,28 @@ appV1.post(
     sessionUser(
       require("./controllers/apply-to-vacancy-with-resume")(
         require("./use-cases/apply-to-vacancy-with-resume")(ApplicationService)
+      )
+    )
+  )
+);
+
+app.get(
+  "/applications/:id",
+  toCallback(
+    sessionUser(
+      require("./controllers/show-application-message")(
+        require("./use-cases/show-application-message")(ChatService)
+      )
+    )
+  )
+);
+
+app.delete(
+  "/applications/:id",
+  toCallback(
+    sessionUser(
+      require("./controllers/delete-application-message")(
+        require("./use-cases/delete-application-message")(ChatService)
       )
     )
   )
@@ -673,9 +696,18 @@ appV1.get(
   toCallback(
     sessionUser(
       require("./controllers/list-callbacks")(
-        require("./use-cases/list-callbacks")(
-          CallbackService,
-        )
+        require("./use-cases/list-callbacks")(CallbackService)
+      )
+    )
+  )
+);
+
+appV1.get(
+  "/jobSeekers/:jobSeekerId/callbacks/",
+  toCallback(
+    sessionUser(
+      require("./controllers/list-callbacks-of-jobseeker")(
+        require("./use-cases/list-callbacks-of-jobseeker")(CallbackService)
       )
     )
   )
@@ -720,9 +752,18 @@ appV1.get(
   toCallback(
     sessionUser(
       require("./controllers/list-questions")(
-        require("./use-cases/list-questions")(
-          QuestionService,
-        )
+        require("./use-cases/list-questions")(QuestionService)
+      )
+    )
+  )
+);
+
+appV1.get(
+  "/jobSeekers/:jobSeekerId/questions/",
+  toCallback(
+    sessionUser(
+      require("./controllers/list-questions-of-jobseeker")(
+        require("./use-cases/list-questions-of-jobseeker")(QuestionService)
       )
     )
   )
@@ -733,9 +774,7 @@ appV1.get(
   toCallback(
     sessionUser(
       require("./controllers/show-question")(
-        require("./use-cases/show-question")(
-          QuestionService,
-        )
+        require("./use-cases/show-question")(QuestionService)
       )
     )
   )
@@ -773,10 +812,23 @@ appV1.post(
 );
 
 appV1.get(
+  "/partners",
+  toCallback(
+    sessionUser(
+      require("./controllers/all-partners")(
+        require("./use-cases/all-partners")(PartnerService)
+      )
+    )
+  )
+);
+
+appV1.get(
   "/partners/:id",
   toCallback(
-    require("./controllers/show-partner")(
-      require("./use-cases/show-partner")(PartnerService)
+    sessionUser(
+      require("./controllers/show-partner")(
+        require("./use-cases/show-partner")(PartnerService)
+      )
     )
   )
 );
@@ -884,6 +936,11 @@ appV1.get(
       )
     )
   )
+);
+
+appV1.get(
+  "/me",
+  toCallback(sessionUser(require("./controllers/get-current-user")))
 );
 
 appV1.get(
@@ -1006,8 +1063,8 @@ const processImage = require("./make-image-pipeline")(
   512
 );
 const multer = require("multer");
-appV1.use(
-  "/users/:userId/upload-profile-pic",
+appV1.put(
+  "/users/:id/profilePic",
   multer({ mimetype: "image/*", limits: { fileSize: 1000000 } }).single(
     "image"
   ),
@@ -1023,6 +1080,6 @@ appV1.use(
   )
 );
 
-app.use("/api/v1/", appV1)
+app.use("/api/v1", appV1);
 
 module.exports = { httpServer: app, wsServer: io };

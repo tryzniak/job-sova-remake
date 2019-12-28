@@ -34,11 +34,16 @@ module.exports = function(VacancyService) {
 
 async function validate(data) {
   try {
-    return await schema.validate(data, {
+    const result = await schema.validate(data, {
       stripUnknown: true
     });
+    if (Object.keys(result).length === 0) {
+      const e = new Error("Cannot update. Provide at least 1 key value pair");
+      e.code = "ER_VALIDATE";
+      throw e;
+    }
   } catch (e) {
-    e.code = "BAD_ARGS";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }
@@ -46,15 +51,15 @@ async function validate(data) {
 const schema = yup.object().shape({
   moderationStatus: yup
     .string()
-    .oneOf([ModerationStatus.OK])
+    .oneOf(Object.values(ModerationStatus))
     .required(),
   employerId: yup.number().integer(),
   educationId: yup.number().integer(),
   title: yup.string(),
-  disabilityId: yup.number().integer(),
-  profession: yup.string(),
+  disabilityTypeId: yup.number().integer(),
+  disabilityGroupId: yup.number().integer(),
   skills: yup.array().of(yup.string()),
-  occupations: yup.array().of(yup.number().integer()),
+  partTime: yup.bool(),
   isActive: yup.bool(),
   isRemoteOk: yup.bool(),
   isAccessible: yup.bool(),
@@ -78,7 +83,7 @@ const schema = yup.object().shape({
     .min(yup.ref("minSalary")),
   hasTrainingOrCourse: yup.boolean(),
   experienceIsRequired: yup.boolean(),
-  paginationState: yup.number().integer(),
+  paginationState: yup.number().integer()
 });
 
 async function validate(data) {

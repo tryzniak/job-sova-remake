@@ -13,22 +13,22 @@ const knex = require("knex")({
   }
 });
 
-const {hash } = require("argon2")
+const { hash } = require("argon2");
 
-const adminEmail = "admin@admin.org"
-const adminPassword = "1234567890"
+const adminEmail = "admin@admin.org";
+const adminPassword = "1234567890";
 
 async function init() {
-  const passwordHash = await hash(adminPassword)
-    return knex()
-      .insert({
-        email: adminEmail,
-        passwordHash,
-        role: "admin",
-        confirmedEmail: true,
-        phone: "+375333366777"
-      })
-      .into("users")
+  const passwordHash = await hash(adminPassword);
+  return knex()
+    .insert({
+      email: adminEmail,
+      passwordHash,
+      role: "admin",
+      confirmedEmail: true,
+      phone: "+375333366777"
+    })
+    .into("users");
 }
 
 init()

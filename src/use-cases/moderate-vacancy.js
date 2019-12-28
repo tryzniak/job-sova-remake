@@ -2,7 +2,7 @@ const yup = require("yup");
 const R = require("ramda");
 const ModerationStatus = require("../moderation-status");
 
-const moderateVacancy = (VacancyService) => async (
+const moderateVacancy = VacancyService => async (
   user,
   id,
   { moderationStatus }
@@ -14,7 +14,7 @@ const moderateVacancy = (VacancyService) => async (
   const validFields = await validate({ id, moderationStatus });
   if (R.isEmpty(validFields)) {
     const e = new Error("Could not edit");
-    e.code = "ER_EDIT_EMPTY";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 
@@ -24,7 +24,6 @@ const moderateVacancy = (VacancyService) => async (
     e.code = "ER_NOT_FOUND";
     throw e;
   }
-
 };
 
 async function validate(fields) {

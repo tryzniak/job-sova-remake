@@ -1,5 +1,6 @@
 const R = require("ramda");
 const { hash } = require("argon2");
+const { notUnique, notFound } = require("./errors");
 
 const makeService = function(makeDB) {
   async function create(hash, generateUpdatesToken, credentials) {
@@ -45,11 +46,14 @@ const makeService = function(makeDB) {
   }
 
   async function update(id, fields) {
-    return await makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("jobSeekers")
       .join("users", "users.id", "jobSeekers.userId")
       .where({ userId: id, role: "jobseeker" });
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function findByID(id) {
@@ -116,10 +120,18 @@ const makeService = function(makeDB) {
         .from("jobSeekers")
         .where("userId", id);
 
-      await trx()
+      const rowsAffected = await trx()
         .delete()
         .from("users")
         .where("id", id);
+
+      if (!rowsAffected) {
+        throw notFound;
+      }
+
+      if (rowsAffected > 1) {
+        throw notUnique;
+      }
 
       await trx.commit();
     } catch (e) {

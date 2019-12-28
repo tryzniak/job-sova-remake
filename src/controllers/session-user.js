@@ -1,3 +1,5 @@
+const { errorToJson, unauthorized } = require("../errors");
+
 module.exports = (UserService /*signout*/) => controller => async req => {
   try {
     if (!req.user) {
@@ -10,12 +12,10 @@ module.exports = (UserService /*signout*/) => controller => async req => {
       headers: { "Content-Type": "application/json" },
       status: 401,
       body: {
-        error: {
-          code: "UNAUTHORIZED",
-          message: "You need to signin to view the page"
-        }
+        error: errorToJson(unauthorized)
       }
     };
   }
+
   return await controller(req);
 };

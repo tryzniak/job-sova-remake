@@ -20,11 +20,11 @@ async function validate(data) {
   try {
     const result = await schema.validateAsync(data, { stripUnknown: true });
     if (R.isEmpty(result)) {
-      throw new Error("Invalid fields for update");
+      throw new Error("No fields to update");
     }
     return result;
   } catch (e) {
-    e.code = "ER_BAD_ARGUMENTS";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }

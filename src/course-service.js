@@ -1,3 +1,4 @@
+const { notFound } = require("./errors");
 const R = require("ramda");
 
 const makeService = function(makeDB) {
@@ -22,10 +23,14 @@ const makeService = function(makeDB) {
   }
 
   async function update(id, fields) {
-    return await makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("courses")
       .where("id", id);
+
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function all() {
@@ -35,10 +40,13 @@ const makeService = function(makeDB) {
   }
 
   async function remove(id) {
-    return await makeDB()
+    const affectedRows = await makeDB()
       .delete()
       .from("courses")
       .where("id", id);
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   return {

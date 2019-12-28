@@ -8,7 +8,7 @@ module.exports = function(QuestionService, sendMail) {
     }
     const validFields = await validate({ partnerId, jobSeekerId, ...fields });
     const id = await QuestionService.create(validFields);
-    sendMail(`/questions/${id}`)
+    sendMail(`/questions/${id}`);
     return id;
   };
 };

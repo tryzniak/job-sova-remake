@@ -1,4 +1,5 @@
 const R = require("ramda");
+const { notFound, notUnique } = require("./errors");
 
 const makeService = function(makeDB) {
   function unflatten(rows) {
@@ -73,6 +74,13 @@ const makeService = function(makeDB) {
   async function updateForJobSeeker(jobSeekerId, id, data) {
     const trx = await makeDB().transaction();
     try {
+      const record = await trx("resumes")
+        .where({ jobSeekerId, id })
+        .first();
+      if (!record) {
+        throw notFound;
+      }
+
       if (data.skills) {
         await trx.raw(
           trx("skills")
@@ -121,13 +129,9 @@ const makeService = function(makeDB) {
           .update({ ...restUpdateData, jobSeekerId })
           .from("resumes")
           .where("id", id);
-        if (affectedRows !== 1) {
-          throw new Error("Not Found");
-        }
       }
 
       await trx.commit();
-      return id;
     } catch (e) {
       await trx.rollback();
       throw e;
@@ -136,6 +140,12 @@ const makeService = function(makeDB) {
   async function update(id, data) {
     const trx = await makeDB().transaction();
     try {
+      const record = await trx("vacancies")
+        .where({ id })
+        .first();
+      if (!record) {
+        throw notFound;
+      }
       if (data.skills) {
         await trx.raw(
           trx("skills")
@@ -187,11 +197,11 @@ const makeService = function(makeDB) {
       }
 
       if (data.moderationStatus) {
-        await trx().update({moderationStatus: data.moderationStatus}).from(
-          "skills"
-        ).join("resumeSkills", "resumeSkills.skillId", "skills.id").where(
-          "resumeSkills.resumeId", id
-        )
+        await trx()
+          .update({ moderationStatus: data.moderationStatus })
+          .from("skills")
+          .join("resumeSkills", "resumeSkills.skillId", "skills.id")
+          .where("resumeSkills.resumeId", id);
       }
 
       await trx.commit();
@@ -240,7 +250,8 @@ const makeService = function(makeDB) {
         }
 
         if (predicate.moderationStatus) {
-          builder.where("moderationStatus", predicate.moderationStatus);
+          builder.where("resumes.moderationStatus", predicate.moderationStatus);
+          builder.where("skills.moderationStatus", predicate.moderationStatus);
         }
 
         if (predicate.jobSeekerId) {
@@ -276,15 +287,11 @@ const makeService = function(makeDB) {
         .delete()
         .where({ id, jobSeekerId });
       if (rowsAffected > 1) {
-        const err = new Error("Record not unique");
-        err.code = "DB_NOT_UNIQUE";
-        throw err;
+        throw notUnique;
       }
 
       if (rowsAffected === 0) {
-        const err = new Error("Record not found");
-        err.code = "DB_NOT_FOUND";
-        throw err;
+        throw notFound;
       }
 
       await trx.commit();
@@ -336,17 +343,20 @@ const makeService = function(makeDB) {
 
   async function create(data) {
     // refactoring:
-    // use Promise.all where feasible
+    // use Promise.all where it's possible
     const trx = await makeDB().transaction();
     try {
-      const { educations, skills, experiences, ...resume } = data;
-      const [resumeId] = await trx("resumes").insert(resume);
+      const { educations, skills, experiences, location, ...resume } = data;
       await trx.raw(
         trx("skills")
           .insert(skills.map(skill => ({ title: skill })))
           .toString()
           .replace("insert", "INSERT IGNORE")
       );
+
+      const [markerId] = await trx("markers").insert(location);
+
+      const [resumeId] = await trx("resumes").insert({ ...resume, markerId });
 
       await trx.raw(
         "insert into resumeSkills (resumeId, skillId) select ?, id from skills where title in (?)",

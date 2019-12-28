@@ -15,7 +15,7 @@ async function validate(data) {
   try {
     return await schema.validateAsync(data, { stripUnknown: true });
   } catch (e) {
-    e.code = "ER_BAD_ARGUMENTS";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }

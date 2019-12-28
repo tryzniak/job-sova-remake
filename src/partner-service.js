@@ -1,4 +1,5 @@
 const R = require("ramda");
+const { notFound } = require("./errors");
 
 const makeService = function(makeDB) {
   async function create(data) {
@@ -15,23 +16,34 @@ const makeService = function(makeDB) {
       .where("id", id)
       .first();
     if (!record) {
-      throw new Error("Record not found");
+      throw notFound;
     }
 
     return record;
   }
 
   async function update(id, fields) {
-    return await makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("partners")
       .where("id", id);
+
+    if (!affectedRows) {
+      throw notFound;
+    }
+  }
+
+  async function all() {
+    return await makeDB()
+      .select()
+      .from("partners");
   }
 
   return {
     findByID,
     update,
-    create
+    create,
+    all
   };
 };
 

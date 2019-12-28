@@ -1,5 +1,6 @@
 const R = require("ramda");
 const ModerationStatus = require("./moderation-status");
+const { notUnique, notFound } = require("./errors");
 
 function unflatten(rows) {
   return R.values(
@@ -55,6 +56,13 @@ const makeService = function(makeDB) {
     // todo deduplicate
     const trx = await makeDB().transaction();
     try {
+      const record = await trx("vacancies")
+        .where({ id, employerId })
+        .first();
+      if (!record) {
+        throw notFound;
+      }
+
       if (data.skills) {
         await trx("vacancySkills")
           .delete()
@@ -90,7 +98,6 @@ const makeService = function(makeDB) {
           .where({ id, employerId });
       }
 
-
       await trx.commit();
       return id;
     } catch (e) {
@@ -101,6 +108,12 @@ const makeService = function(makeDB) {
   async function update(id, data) {
     const trx = await makeDB().transaction();
     try {
+      const record = await trx("vacancies")
+        .where({ id })
+        .first();
+      if (!record) {
+        throw notFound;
+      }
       if (data.skills) {
         await trx("vacancySkills")
           .delete()
@@ -137,11 +150,11 @@ const makeService = function(makeDB) {
       }
 
       if (data.moderationStatus) {
-        await trx().update({moderationStatus: data.moderationStatus}).from(
-          "skills"
-        ).join("vacancySkills", "vacancySkills.skillId", "skills.id").where(
-          "vacancySkills.vacancyId", id
-        )
+        await trx()
+          .update({ moderationStatus: data.moderationStatus })
+          .from("skills")
+          .join("vacancySkills", "vacancySkills.skillId", "skills.id")
+          .where("vacancySkills.vacancyId", id);
       }
 
       await trx.commit();
@@ -189,16 +202,24 @@ const makeService = function(makeDB) {
             }
 
             if (predicate.paginationState) {
-          builder.where("vacancies.id", "<", predicate.paginationState);
+              builder.where("vacancies.id", "<", predicate.paginationState);
             }
 
             builder.where(
               R.omit(
-                ["paginationState", "nearby", "skills", "minSalary", "maxSalary"],
+                [
+                  "paginationState",
+                  "nearby",
+                  "skills",
+                  "minSalary",
+                  "maxSalary"
+                ],
                 predicate
               )
             );
-          }).limit(50).orderBy("id", "desc")
+          })
+          .limit(50)
+          .orderBy("id", "desc")
       )
       .join("markers", "markers.id", "v.markerId")
       .leftJoin(
@@ -230,7 +251,11 @@ const makeService = function(makeDB) {
         .from("vacancies")
         .where({ id, employerId });
       if (rowsAffected !== 1) {
-        throw new Error("Not unique");
+        throw notUnique;
+      }
+
+      if (rowsAffected === 0) {
+        throw notFound;
       }
 
       await trx.commit();

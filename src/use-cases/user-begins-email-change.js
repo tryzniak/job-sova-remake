@@ -1,5 +1,6 @@
 const joi = require("@hapi/joi");
 const datefns = require("date-fns");
+const { unauthorized } = require("../errors");
 
 module.exports = function(
   UserService,
@@ -22,9 +23,12 @@ async function validate(data) {
   try {
     return await schemaEmail.validateAsync(data, { stripUnknown: true });
   } catch (e) {
-    e.code = "ER_BAD_ARGUMENTS";
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }
 
-const schemaEmail = joi.string().required();
+const schemaEmail = joi
+  .string()
+  .email()
+  .required();

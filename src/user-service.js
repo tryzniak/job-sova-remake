@@ -1,6 +1,7 @@
 const R = require("ramda");
 const { hash } = require("argon2");
 const nanoid = require("nanoid/async");
+const { notFound } = require("./errors");
 
 const makeUserService = function(makeDB) {
   async function changeEmail(token) {
@@ -102,9 +103,7 @@ const makeUserService = function(makeDB) {
       [email]
     );
     if (R.isEmpty(results[0])) {
-      const e = new Error("Record not found");
-      e.code = "ER_NOT_FOUND";
-      throw e;
+      throw notFound;
     }
     return R.filter(
       R.compose(
@@ -116,10 +115,14 @@ const makeUserService = function(makeDB) {
   }
 
   async function update(id, fields) {
-    return makeDB()
+    const affectedRows = await makeDB()
       .update(fields)
       .from("users")
       .where({ id });
+
+    if (!affectedRows) {
+      throw notFound;
+    }
   }
 
   async function findByID(id) {

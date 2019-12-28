@@ -10,8 +10,8 @@ module.exports = function(ResumeService, sendEmail) {
     }
     const validData = await validate(data);
     const id = await ResumeService.create(validData);
-    sendEmail(`/resumes/${id}`)
-    return id
+    sendEmail(`/resumes/${id}`);
+    return id;
   };
 };
 
@@ -119,6 +119,14 @@ const schema = yup.object().shape({
     .number()
     .positive()
     .integer()
+    .required(),
+  location: yup
+    .object()
+    .shape({
+      lat: yup.number().required(),
+      lng: yup.number().required(),
+      address: yup.string().required()
+    })
     .required()
 });
 
@@ -128,7 +136,7 @@ async function validate(data) {
       stripUnknown: true
     });
   } catch (e) {
-    e.code = "ER_VALIDATE"
+    e.code = "ER_VALIDATE";
     throw e;
   }
 }

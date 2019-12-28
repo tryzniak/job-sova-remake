@@ -6,10 +6,11 @@ const makeService = function(makeDB) {
       .where("id", id);
   }
 
-  async function all() {
+  async function all(filter) {
     return makeDB()
       .select()
       .from("skills")
+      .where(filter)
       .then(results => results.map(result => ({ ...result })));
   }
   async function clear() {
