@@ -3,8 +3,8 @@ const knex = require("knex")({
   client: "mysql2",
   connection: {
     user: "root",
-    host: "127.0.0.1",
-    port: "3306",
+    host: "db",
+    port: 3306,
     database: "jobsova",
     password: "qwerty"
   }
@@ -158,4 +158,5 @@ async function init() {
 
 init()
   .then(() => console.log("Ok. Seed's went through. You can close it"))
+  .then(process.exit)
   .catch(console.error);

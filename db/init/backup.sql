@@ -15,6 +15,9 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
+CREATE DATABASE jobsova;
+USE jobsova;
+
 --
 -- Table structure for table `applications`
 --
@@ -38,7 +41,7 @@ CREATE TABLE `applications` (
   CONSTRAINT `applications_ibfk_2` FOREIGN KEY (`vacancyId`) REFERENCES `vacancies` (`id`) ON DELETE CASCADE,
   CONSTRAINT `applications_ibfk_3` FOREIGN KEY (`jobSeekerId`) REFERENCES `jobSeekers` (`userId`) ON DELETE CASCADE,
   CONSTRAINT `applications_ibfk_4` FOREIGN KEY (`employerId`) REFERENCES `employers` (`userId`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -82,7 +85,7 @@ CREATE TABLE `chatMessages` (
   KEY `fromUserId` (`fromUserId`),
   CONSTRAINT `chatMessages_ibfk_1` FOREIGN KEY (`applicationId`) REFERENCES `applications` (`id`) ON DELETE CASCADE,
   CONSTRAINT `chatMessages_ibfk_2` FOREIGN KEY (`fromUserId`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -97,7 +100,7 @@ CREATE TABLE `citizenships` (
   `title` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -113,7 +116,7 @@ CREATE TABLE `courses` (
   `about` text COLLATE utf8mb4_unicode_ci,
   `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -128,7 +131,7 @@ CREATE TABLE `disabilityGroups` (
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -143,7 +146,7 @@ CREATE TABLE `disabilityTypes` (
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,7 +161,7 @@ CREATE TABLE `educations` (
   `title` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -212,7 +215,7 @@ CREATE TABLE `markers` (
   `lat` float(10,6) NOT NULL,
   `lng` float(10,6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -245,7 +248,7 @@ CREATE TABLE `partners` (
   `createdAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updatedAt` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -310,7 +313,7 @@ CREATE TABLE `resumeExperiences` (
   PRIMARY KEY (`id`),
   KEY `resumeId` (`resumeId`),
   CONSTRAINT `resumeExperiences_ibfk_1` FOREIGN KEY (`resumeId`) REFERENCES `resumes` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -329,7 +332,7 @@ CREATE TABLE `resumeSkills` (
   KEY `resumeId` (`resumeId`),
   CONSTRAINT `resumeSkills_ibfk_1` FOREIGN KEY (`resumeId`) REFERENCES `resumes` (`id`),
   CONSTRAINT `resumeSkills_ibfk_2` FOREIGN KEY (`skillId`) REFERENCES `skills` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -361,17 +364,20 @@ CREATE TABLE `resumes` (
   `lastName` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
   `patronymicName` varchar(256) COLLATE utf8mb4_unicode_ci NOT NULL,
   `dateOfBirth` date DEFAULT NULL,
+  `markerId` bigint(20) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`),
   KEY `jobSeekerId` (`jobSeekerId`),
   KEY `disabilityTypeId` (`disabilityTypeId`),
   KEY `disabilityGroupId` (`disabilityGroupId`),
   KEY `citizenshipFK` (`citizenshipId`),
+  KEY `fkMarkerId` (`markerId`),
   CONSTRAINT `citizenshipFK` FOREIGN KEY (`citizenshipId`) REFERENCES `citizenships` (`id`),
+  CONSTRAINT `fkMarkerId` FOREIGN KEY (`markerId`) REFERENCES `markers` (`id`),
   CONSTRAINT `resumes_ibfk_1` FOREIGN KEY (`jobSeekerId`) REFERENCES `jobSeekers` (`userId`) ON DELETE CASCADE,
   CONSTRAINT `resumes_ibfk_3` FOREIGN KEY (`disabilityTypeId`) REFERENCES `disabilityTypes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `resumes_ibfk_4` FOREIGN KEY (`disabilityGroupId`) REFERENCES `disabilityGroups` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -387,7 +393,7 @@ CREATE TABLE `skills` (
   `moderationStatus` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NEEDS_REVIEW',
   PRIMARY KEY (`id`),
   UNIQUE KEY `title` (`title`)
-) ENGINE=InnoDB AUTO_INCREMENT=115 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=114 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -416,7 +422,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `phone` (`phone`),
   UNIQUE KEY `uniqueLiveUpdatesToken` (`liveUpdatesToken`),
   UNIQUE KEY `emailChangeToken` (`emailChangeToken`)
-) ENGINE=InnoDB AUTO_INCREMENT=94 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=97 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -459,7 +465,7 @@ CREATE TABLE `vacancies` (
   CONSTRAINT `vacancies_ibfk_4` FOREIGN KEY (`markerId`) REFERENCES `markers` (`id`) ON DELETE CASCADE,
   CONSTRAINT `vacancies_ibfk_5` FOREIGN KEY (`disabilityGroupId`) REFERENCES `disabilityGroups` (`id`),
   CONSTRAINT `vacancies_ibfk_6` FOREIGN KEY (`disabilityTypeId`) REFERENCES `disabilityTypes` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -473,13 +479,12 @@ CREATE TABLE `vacancySkills` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `skillId` bigint(20) NOT NULL,
   `vacancyId` bigint(20) NOT NULL,
-  `moderationStatus` varchar(12) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'NEEDS_REVIEW',
   PRIMARY KEY (`id`),
   UNIQUE KEY `vacancySkillIndex` (`skillId`,`vacancyId`),
   KEY `vacancyId` (`vacancyId`),
   CONSTRAINT `vacancieSkills_ibfk_1` FOREIGN KEY (`vacancyId`) REFERENCES `vacancies` (`id`),
   CONSTRAINT `vacancieSkills_ibfk_2` FOREIGN KEY (`skillId`) REFERENCES `skills` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -491,4 +496,4 @@ CREATE TABLE `vacancySkills` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-12-02 19:52:31
+-- Dump completed on 2019-12-28 19:10:42

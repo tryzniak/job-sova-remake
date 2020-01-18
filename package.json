@@ -1,12 +1,12 @@
 {
-  "name": "kilometry",
+  "name": "jobsova",
   "version": "1.0.0",
   "description": "",
   "main": "./bin/app.js",
   "scripts": {
-    "start": "nodemon ./bin/app.js ",
-    "test": "mocha",
-    "ava": "ava -s",
+    "db-seed": "node ./db/seed.js",
+    "dev": "nodemon ./bin/app.js",
+    "start": "node ./bin/app.js",
     "format": "prettier --write src/**/*.js **/*.js test/**/*.js test/*.js"
   },
   "keywords": [],
@@ -14,10 +14,8 @@
   "license": "ISC",
   "devDependencies": {
     "faker": "4.1.0",
-    "mocha": "^6.2.0",
     "nodemon": "1.19.1",
-    "prettier": "1.18.2",
-    "supertest": "^4.0.2"
+    "prettier": "1.18.2"
   },
   "dependencies": {
     "@hapi/joi": "^16.1.7",
@@ -42,6 +40,7 @@
     "multer": "^1.4.2",
     "mysql2": "^1.6.5",
     "nanoid": "^2.1.6",
+    "nodemailer": "^6.4.2",
     "passport": "^0.4.0",
     "passport-local": "^1.0.0",
     "phone": "^2.4.2",

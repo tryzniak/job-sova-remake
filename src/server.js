@@ -47,7 +47,7 @@ const makeNotifyAdmin = UserService => subject => async url => {
   });
 };
 
-const makeDb = require("./makeDb");
+const makeDb = require("./makeDB");
 const UserService = require("./user-service")(makeDb);
 const sessionUser = require("./controllers/session-user")(UserService);
 const notifyAdmin = makeNotifyAdmin(UserService);
@@ -200,6 +200,7 @@ const toCallback = controller => async (req, res) => {
     res.status(response.status).json(response.body);
   } catch (e) {
     console.error(e);
+    console.log(e);
 
     if (e.code === "ER_VALIDATE" || e.name === "ValidationError") {
       res.status(400);
