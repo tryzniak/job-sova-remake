@@ -295,10 +295,8 @@ const VacancyService = require("./vacancy-service")(makeDb);
 appV1.get(
   "/vacancies",
   toCallback(
-    sessionUser(
-      require("./controllers/all-vacancies-for-jobseekers")(
-        require("./use-cases/all-vacancies-for-jobseekers")(VacancyService)
-      )
+    require("./controllers/all-vacancies-for-jobseekers")(
+      require("./use-cases/all-vacancies-for-jobseekers")(VacancyService)
     )
   )
 );

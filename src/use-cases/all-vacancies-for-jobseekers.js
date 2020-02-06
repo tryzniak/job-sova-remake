@@ -4,6 +4,24 @@ const R = require("ramda");
 
 module.exports = function(VacancyService) {
   return async (user, filters) => {
+    if (!user) {
+      return R.map(
+        R.omit(["contacts"]),
+        await VacancyService.all(
+          R.filter(
+            R.compose(
+              R.not,
+              R.isNil
+            ),
+            await validate({
+              ...filters,
+              moderationStatus: ModerationStatus.OK
+            })
+          )
+        )
+      );
+    }
+
     if (user.role === "jobseeker") {
       return await VacancyService.all(
         R.filter(
@@ -27,8 +45,6 @@ module.exports = function(VacancyService) {
         )
       );
     }
-
-    throw new Error("Unauthorized");
   };
 };
 
