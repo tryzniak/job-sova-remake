@@ -2,15 +2,13 @@ const { notFound, invalidSignin } = require("../errors");
 module.exports = function(signinUseCase) {
   return async req => {
     try {
-      const { email, password } = req.body.data;
+      const { email, password } = req.body;
       const payload = await signinUseCase(email, password);
       return {
         headers: { "Content-Type": "application/json" },
         session: { userEmail: payload.email },
         status: 200,
-        body: {
-          data: payload
-        }
+        body: payload
       };
     } catch (e) {
       if (e.code === invalidSignin.code) {

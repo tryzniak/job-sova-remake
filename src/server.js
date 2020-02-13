@@ -612,14 +612,17 @@ appV1.post(
         generateUpdatesToken,
         require("./use-cases/user-begins-email-change")(
           UserService,
-          async (email, url) =>
+          async (email, url) => {
+            const body = `Для завершения регистрации пройдите по ссылке <a href="${url}">${url}</a>`;
             await sendMail({
               to: [email],
               subject: "Регистрация в Job Sova",
-              bodyHtml: `Для для завершения регистрации пройдите по ссылке <a href="${url}">${url}</a>`
-            }),
+              bodyHtml: body
+            });
+            console.log(body)
+          },
           nanoid,
-          async token => `localhost:3000/change-email/${token}`
+          async token => `localhost:3000/api/v1/change-email/${token}`
         )
       )
     )
@@ -647,14 +650,17 @@ appV1.post(
         generateUpdatesToken,
         require("./use-cases/user-begins-email-change")(
           UserService,
-          async (email, url) =>
+          async (email, url) => {
+            const body = `Для завершения регистрации пройдите по ссылке <a href="${url}">${url}</a>`
             await sendMail({
               to: [email],
               subject: "Регистрация в Job Sova",
-              bodyHtml: `Для для завершения регистрации пройдите по ссылке <a href="${url}">${url}</a>`
-            }),
+              bodyHtml: body
+            })
+            console.log(body)
+          },
           nanoid,
-          async token => `localhost:3000/change-email/${token}`
+          async token => `localhost:3000/api/v1/change-email/${token}`
         )
       )
     )
@@ -864,14 +870,12 @@ appV1.post(
   )
 );
 
-appV1.post(
+appV1.get(
   "/change-email/:token",
   toCallback(
-    sessionUser(
       require("./controllers/user-finishes-email-change")(
         require("./use-cases/user-finishes-email-change")(UserService)
       )
-    )
   )
 );
 

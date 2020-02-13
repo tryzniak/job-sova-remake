@@ -1,6 +1,6 @@
 module.exports = useCase => async req => {
   try {
-    await useCase(req.user.email, req.body.data.newEmail);
+    await useCase(req.user.email, req.body.newEmail);
     return {
       headers: { "Content-Type": "application/json" },
       status: 200

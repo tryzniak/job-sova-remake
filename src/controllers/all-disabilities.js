@@ -4,9 +4,7 @@ module.exports = function(useCase) {
       return {
         headers: { "Content-Type": "application/json" },
         status: 200,
-        body: {
-          data: await useCase()
-        }
+        body: await useCase()
       };
     } catch (e) {
       return {

@@ -7,7 +7,7 @@ module.exports = useCase => async req => {
     headers: { "Content-Type": "application/json" },
     status: 201,
     body: {
-      data: { applicationId: id }
+      applicationId: id 
     }
   };
 };

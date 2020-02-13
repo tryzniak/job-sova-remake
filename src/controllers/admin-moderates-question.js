@@ -1,7 +1,7 @@
 module.exports = function(useCase) {
   return async req => {
     try {
-      await useCase(req.params.id, req.body.data);
+      await useCase(req.params.id, req.body);
       return {
         headers: { "Content-Type": "application/json" },
         status: 200
