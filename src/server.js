@@ -622,7 +622,7 @@ appV1.post(
             console.log(body)
           },
           nanoid,
-          async token => `localhost:3000/api/v1/change-email/${token}`
+          async token => `localhost:3000/activate?token=${token}`
         )
       )
     )
@@ -660,7 +660,7 @@ appV1.post(
             console.log(body)
           },
           nanoid,
-          async token => `localhost:3000/api/v1/change-email/${token}`
+          async token => `localhost:3000/activate?token=${token}`
         )
       )
     )
