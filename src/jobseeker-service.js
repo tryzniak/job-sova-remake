@@ -11,7 +11,6 @@ const makeService = function(makeDB) {
       patronymicName,
       phone,
       email,
-      username,
       gender,
       dateOfBirth,
       contacts
@@ -23,7 +22,6 @@ const makeService = function(makeDB) {
         email,
         phone,
         passwordHash,
-        username,
         role: "jobseeker",
         confirmedEmail: false
       });

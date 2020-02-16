@@ -127,7 +127,7 @@ const makeUserService = function(makeDB) {
 
   async function findByID(id) {
     const results = await makeDB().raw(
-      "select u.id, u.liveUpdatesToken, u.username, u.email, u.phone, u.role, e.title, e.about, e.residence, j.firstName, j.lastName, j.patronymicName, j.gender, j.dateOfBirth from users u left join employers e on u.id = e.userId left join jobSeekers j on j.userId = u.id where u.id = ? and u.confirmedEmail = TRUE",
+      "select u.id, u.liveUpdatesToken, u.email, u.phone, u.role, e.title, e.about, e.residence, j.firstName, j.lastName, j.patronymicName, j.gender, j.dateOfBirth from users u left join employers e on u.id = e.userId left join jobSeekers j on j.userId = u.id where u.id = ? and u.confirmedEmail = TRUE",
       [id]
     );
     if (R.isEmpty(results[0])) {

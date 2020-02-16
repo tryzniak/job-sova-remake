@@ -36,7 +36,6 @@ const schema = yup.object().shape({
     .string()
     .transform(capitalize)
     .required(),
-  username: yup.string().required(),
   password: yup
     .string()
     .min(8)
