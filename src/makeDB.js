@@ -6,7 +6,8 @@ module.exports = mem(() =>
     client: "mysql2",
     connection: {
       user: "root",
-      host: "db",
+      //host: "db",
+      host: "localhost",
       port: 3306,
       database: "jobsova",
       password: "qwerty"
