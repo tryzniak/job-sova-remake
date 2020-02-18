@@ -1,6 +1,7 @@
 version: '3'
 services:
   api:
+    container_name: "jobsova-api"
     build:
       context: .
       dockerfile: Dockerfile-api
@@ -9,6 +10,7 @@ services:
     depends_on:
       - db
   db:
+    container_name: "jobsova-db"
     image: mysql:5.7
     env_file: 
     - ./db/.env
