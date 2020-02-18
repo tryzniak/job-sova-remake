@@ -32,6 +32,7 @@
     "delay": "^4.3.0",
     "express": "^4.17.1",
     "express-session": "^1.16.2",
+    "express-winston": "^4.0.3",
     "http-errors": "^1.7.3",
     "is-error-constructor": "^2.1.0",
     "jsonwebtoken": "^8.5.1",
@@ -51,6 +52,7 @@
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
     "sqlite3": "^4.1.0",
+    "winston": "^3.2.1",
     "yup": "^0.27.0"
   }
 }
