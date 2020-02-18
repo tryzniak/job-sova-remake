@@ -4,12 +4,7 @@ module.exports = function(useCase) {
       return {
         headers: { "Content-Type": "application/json" },
         status: 200,
-        body: await useCase(
-            req.user,
-            req.params.id,
-            req.query.moderationStatus
-          )
-        
+        body: await useCase(req.user, req.params.id, req.query.moderationStatus)
       };
     } catch (e) {
       return {

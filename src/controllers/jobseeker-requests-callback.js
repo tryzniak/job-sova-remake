@@ -3,12 +3,12 @@ module.exports = function(useCase) {
     return {
       headers: { "Content-Type": "application/json" },
       status: 200,
-      body:await useCase(
-          req.user,
-          req.params.jobSeekerId,
-          req.params.partnerId,
-          req.body
-        )
+      body: await useCase(
+        req.user,
+        req.params.jobSeekerId,
+        req.params.partnerId,
+        req.body
+      )
     };
   };
 };

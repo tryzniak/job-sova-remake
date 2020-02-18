@@ -5,11 +5,11 @@ module.exports = function(useCase) {
         headers: { "Content-Type": "application/json" },
         status: 200,
         body: await useCase(
-            req.user,
-            req.params.jobSeekerId,
-            req.params.partnerId,
-            req.body
-          )
+          req.user,
+          req.params.jobSeekerId,
+          req.params.partnerId,
+          req.body
+        )
       };
     } catch (e) {
       return {
