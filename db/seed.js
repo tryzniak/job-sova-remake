@@ -1,10 +1,14 @@
+const DB_HOST = process.env.DB_HOST
+console.log(DB_HOST)
+
 // specify your own connection details
 const knex = require("knex")({
   client: "mysql2",
   connection: {
     user: "root",
     //host: "db",
-    host: "localhost",
+    //host: "localhost",
+    host: DB_HOST,
     port: 3306,
     database: "jobsova",
     password: "qwerty"

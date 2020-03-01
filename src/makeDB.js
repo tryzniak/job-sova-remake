@@ -7,7 +7,7 @@ module.exports = mem(() =>
     connection: {
       user: "root",
       //host: "db",
-      host: "localhost",
+      host: process.env.DB_HOST,
       port: 3306,
       database: "jobsova",
       password: "qwerty"
