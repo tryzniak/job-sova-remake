@@ -30,7 +30,7 @@
     "date-fns": "^2.6.0",
     "db-errors": "^0.2.3",
     "delay": "^4.3.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-session": "^1.16.2",
     "express-winston": "^4.0.3",
     "http-errors": "^1.7.3",
