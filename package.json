@@ -35,7 +35,7 @@
     "express-winston": "^4.0.3",
     "http-errors": "^1.7.3",
     "is-error-constructor": "^2.1.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "knex": "^0.19.1",
     "mem": "^5.1.1",
     "multer": "^1.4.2",
